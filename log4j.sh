@@ -100,13 +100,15 @@ elif [[ $(uname -s) == "Linux" ]]; then
         data=$(mount | grep -vE "/proc|nfs|mounted|--------" | awk '{print $3}' | xargs -I{} find {} -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"| grep -v "log4j.*\.jar")
 fi
 for candidate in $data; do 
-	echo "# Candidate: $candidate"
+	echo "# Candidate: $candidate" 1>&2
 	log4js=$(strings $candidate | egrep -i "JndiLookup.class|JMSAppender.class" | perl -ne  '/(.*)PK$/ && print "$1"')
 	
 	if [ -z "$log4js" ]; then
-		echo "# OK: There is no log4j directly included in this archive" 
+		echo "# OK: There is no log4j directly included in this archive" 1>&2
+		echo 1>&2
 	fi	
 	for log4j in $log4js; do
+		echo "# Candidate: $candidate" 
 	        owner=$(ls -lad $candidate| awk '{print $3}')
 	        group=$(ls -lad $candidate| awk '{print $4}')
 		echo "# Found class: $log4j"
@@ -117,7 +119,7 @@ for candidate in $data; do
                 echo "#3) Restore the ownership: "
                 echo "chown $owner:$group $candidate"
 
+	echo ""
 	done	
 
-	echo ""
 done
