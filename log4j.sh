@@ -39,13 +39,13 @@ for log4j in $data ; do
 
 		echo "# vers 1.x: class should be removed"
 		echo "#1) make an backup of $log4j"
-		echo "cp -p ${log4j} ${log4j}.bak-$(date +%s)"
+		echo "cp -p \"${log4j}\" \"${log4j}.bak-$(date +%s)\""
 		echo "#2) Remove the class from the classpath"
 		for j in $is_vuln; do
-			echo "zip -q -d ${log4j} ${j}"
+			echo "zip -q -d \"${log4j}\" \"${j}\""
 		done
 		echo "#3) Restore the ownership: "
-		echo "chown $owner:$group $log4j"
+		echo "chown $owner:$group \"$log4j\""
 	fi
 
 
@@ -60,10 +60,10 @@ for log4j in $data ; do
 			fi
 			echo "# vers 2.x (lower than 2.10): class should be removed"
 			echo "#1) make an backup of $log4j"
-			echo "cp -p ${log4j} ${log4j}.bak-$(date +%s)"
+			echo "cp -p \"${log4j}\" \"${log4j}.bak-$(date +%s)\""
 			echo "#2) Remove the class from the classpath"
 			for j in $is_vuln; do
-				echo "zip -q -d ${log4j} ${j}"
+				echo "zip -q -d \"${log4j}\" \"${j}\""
 			done
 			echo "#3) Restore the ownership: "
 			echo "chown $owner:$group $log4j"
@@ -113,11 +113,11 @@ for candidate in $data; do
 	        group=$(ls -lad $candidate| awk '{print $4}')
 		echo "# Found class: $log4j"
                 echo "#1) make an backup of $candidate"
-                echo "cp -p ${candidate} ${candidate}.bak-$(date +%s)"
+                echo "cp -p \"${candidate}\" \"${candidate}.bak-$(date +%s)\""
                 echo "#2) Removethe class from the classpath"
-                echo "zip -q -d ${candidate} $log4j"
+                echo "zip -q -d \"${candidate}\" \"$log4j\""
                 echo "#3) Restore the ownership: "
-                echo "chown $owner:$group $candidate"
+                echo "chown $owner:$group \"$candidate\""
 
 	echo ""
 	done	
