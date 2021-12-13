@@ -18,8 +18,8 @@ for log4j in $data ; do
 	fi
 	owner=$(ls -lad $log4j| awk '{print $3}')
 	group=$(ls -lad $log4j| awk '{print $4}')
-	echo "#${log4j},${version}"
-	echo "#Ownership: $owner:$group"
+	echo "# ${log4j},${version}"
+	echo "# Ownership: $owner:$group"
 
 	# thrown warning if version couldn't be determined
 	if [ -z $version ]; then
@@ -32,8 +32,8 @@ for log4j in $data ; do
 	if [ $(echo $version |grep "^1\.") ]; then
 		is_vuln=$(strings $log4j |fgrep -i "log4j/net/JMSAppender.class" | perl -ne  '/(.*)PK$/ && print "$1"')
 		if [ -z "$is_vuln" ]; then
-			echo "# OK: issue remediated"
-			echo ""
+			echo "# OK: issue remediated" 1>&2
+			echo "" 1>&1
 			continue
 		fi
 
