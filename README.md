@@ -13,6 +13,7 @@ The script in it's native way just generates the remedation instructions (comman
 
 ```
 ./log4j.sh #just provides the instructions
+./log4j.sh > vulnerable 2> already_remediated
 ./log4j.sh |sh #also invocate the instructions
 ```
 

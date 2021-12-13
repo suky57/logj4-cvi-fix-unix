@@ -18,13 +18,13 @@ for log4j in $data ; do
 	fi
 	owner=$(ls -lad $log4j| awk '{print $3}')
 	group=$(ls -lad $log4j| awk '{print $4}')
-	echo "# ${log4j},${version}"
-	echo "# Ownership: $owner:$group"
+	echo "# ${log4j},${version}" 1>&2
+	echo "# Ownership: $owner:$group" 1>&1
 
 	# thrown warning if version couldn't be determined
 	if [ -z $version ]; then
 		echo "# WARNING: from this jar file, version couldn't be determined - MANIFEST is missing inside!"
-		echo
+		echo 
 		continue
 	fi
 
@@ -33,10 +33,13 @@ for log4j in $data ; do
 		is_vuln=$(strings $log4j |fgrep -i "log4j/net/JMSAppender.class" | perl -ne  '/(.*)PK$/ && print "$1"')
 		if [ -z "$is_vuln" ]; then
 			echo "# OK: issue remediated" 
-			echo "" 1>&1
+			echo "" 1>&2
+			echo "" 1>&2
 			continue
 		fi
 
+		echo "# ${log4j},${version}" 
+		echo "# Ownership: $owner:$group" 
 		echo "# vers 1.x: class should be removed"
 		echo "#1) make an backup of $log4j"
 		echo "cp -p \"${log4j}\" \"${log4j}.bak-$(date +%s)\""
@@ -54,10 +57,13 @@ for log4j in $data ; do
 		if [ $(echo $log4j |grep "log4j-core-") ]; then
 			is_vuln=$(strings $log4j |fgrep -i "log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
 			if [ -z "$is_vuln" ]; then
-				echo "# OK: issue remediated"
-				echo ""
+				echo "# OK: issue remediated" 1>&2
+				echo "" 1>&2
 				continue
 			fi
+
+			echo "# ${log4j},${version}" 
+			echo "# Ownership: $owner:$group" 
 			echo "# vers 2.x (lower than 2.10): class should be removed"
 			echo "#1) make an backup of $log4j"
 			echo "cp -p \"${log4j}\" \"${log4j}.bak-$(date +%s)\""
@@ -69,7 +75,7 @@ for log4j in $data ; do
 			echo "chown $owner:$group $log4j"
 
 		else
-			echo "# OK: for version 2.x (prior to 2.10) just log4j-core module should be updated."
+			echo "# OK: for version 2.x (prior to 2.10) just log4j-core module should be updated." 1>&2
 			echo
 			continue
 		fi
@@ -77,6 +83,8 @@ for log4j in $data ; do
 	
 	# version >=2.10 stream:
 	if [ $(echo $version |grep "^2\.[1-9][0-9]") ]; then
+		echo "# ${log4j},${version}" 
+		echo "# Ownership: $owner:$group" 
 		echo "# vers >= 2.10:"
 		envvar=$(env | fgrep LOG4J_FORMAT_MSG_NO_LOOKUPS |cut -d= -f2)
 		if [[ $envvar == "true" ]]; then
