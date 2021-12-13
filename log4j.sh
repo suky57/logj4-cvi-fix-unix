@@ -32,7 +32,7 @@ for log4j in $data ; do
 	if [ $(echo $version |grep "^1\.") ]; then
 		is_vuln=$(strings $log4j |fgrep -i "log4j/net/JMSAppender.class" | perl -ne  '/(.*)PK$/ && print "$1"')
 		if [ -z "$is_vuln" ]; then
-			echo "# OK: issue remediated" 1>&2
+			echo "# OK: issue remediated" 
 			echo "" 1>&1
 			continue
 		fi
