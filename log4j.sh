@@ -50,7 +50,7 @@ for log4j in $data ; do
 
 
 	#version up to 2.10x stream:
-	if [ $(echo $version | grep "^2\.[0-9][^\d]*") ]; then
+	if [ $(echo $version | grep -E "^2\.[0-9]([^0-9]|$)" ]; then
 		if [ $(echo $log4j |grep "log4j-core-") ]; then
 			is_vuln=$(strings $log4j |fgrep -i "JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
 			if [ -z "$is_vuln" ]; then
