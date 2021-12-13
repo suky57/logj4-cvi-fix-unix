@@ -18,3 +18,8 @@ The script in it's native way just generates the remedation instructions (comman
 ```
 
 After the instructions are invocated then, application restart is needed - in some cases, reboot of whole server could be the more faster approach.
+
+
+## Author
+
+Martin Sukany (Martin.Sukany@kyndryl.com; slack: #suky57)
