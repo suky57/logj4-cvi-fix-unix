@@ -7,7 +7,7 @@
   * log4j 1.x and <= 2.10.x -- remove the vulnerable class from the classpath
   * log4j > 2.10 -- proposes to use the system-wide variable which ensure that JVM will disable the potential vulnerable functionality
 
-The script in it's native way just generates the remedation instructions (command for command) for the system it's been run on.
+The script in it's native way just generates the remedation instructions (command by command) for the system it's been run on.
 
 ## Usage
 
