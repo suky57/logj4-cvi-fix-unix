@@ -30,7 +30,7 @@ for log4j in $data ; do
 
 	# version 1.x stream
 	if [ $(echo $version |grep "^1\.") ]; then
-		is_vuln=$(strings $log4j |fgrep -i "JMSAppender.class" | perl -ne  '/(.*)PK$/ && print "$1"')
+		is_vuln=$(strings $log4j |fgrep -i "log4j/net/JMSAppender.class" | perl -ne  '/(.*)PK$/ && print "$1"')
 		if [ -z "$is_vuln" ]; then
 			echo "# OK: issue remediated"
 			echo ""
@@ -52,7 +52,7 @@ for log4j in $data ; do
 	#version up to 2.10x stream:
 	if [ $(echo "$version" | grep "^2\.[0-9][^\d]*") ]; then
 		if [ $(echo $log4j |grep "log4j-core-") ]; then
-			is_vuln=$(strings $log4j |fgrep -i "JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
+			is_vuln=$(strings $log4j |fgrep -i "log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
 			if [ -z "$is_vuln" ]; then
 				echo "# OK: issue remediated"
 				echo ""
@@ -101,7 +101,7 @@ elif [[ $(uname -s) == "Linux" ]]; then
 fi
 for candidate in $data; do 
 	echo "# Candidate: $candidate" 1>&2
-	log4js=$(strings $candidate | egrep -i "JndiLookup.class|JMSAppender.class" | perl -ne  '/(.*)PK$/ && print "$1"')
+	log4js=$(strings $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
 	
 	if [ -z "$log4js" ]; then
 		echo "# OK: There is no log4j directly included in this archive" 1>&2
