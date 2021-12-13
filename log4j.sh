@@ -12,9 +12,9 @@ echo "# Searching whole system for log4j JAR files ...      #"
 echo "#######################################################"
 echo ""
 for log4j in $data ; do
-	version=$(unzip -q -c ${log4j} META-INF/MANIFEST.MF |  grep -i "Implementation-Version" | perl -ne '/(\d.*\S)/ && print "$1"')
+	version=$(unzip -q -c ${log4j} META-INF/MANIFEST.MF |  grep -i "Implementation-Version" | perl -ne '/(\d.*\S)/ && print "$1"' |head -n1)
 	if [ -z "$version" ]; then
-		version=$(unzip -q -c ${log4j} META-INF/MANIFEST.MF |  grep -i "Library-Version" | perl -ne '/(\d.*\S)/ && print "$1"')
+		version=$(unzip -q -c ${log4j} META-INF/MANIFEST.MF |  grep -i "Library-Version" | perl -ne '/(\d.*\S)/ && print "$1"' |head -n1)
 	fi
 	owner=$(ls -lad $log4j| awk '{print $3}')
 	group=$(ls -lad $log4j| awk '{print $4}')
