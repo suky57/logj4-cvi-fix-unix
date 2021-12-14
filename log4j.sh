@@ -3,12 +3,18 @@
 LANG=C
 IFS=$'\n'
 
+myPath=$1
 
-if [[ $(uname -s) == "AIX" ]]; then
-	data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
-elif [[ $(uname -s) == "Linux" ]]; then
-	data=$(mount | grep -vE "/proc|nfs|nfs3|nfs4|mounted|--------" | awk '{print $3}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
+if [ -n "$myPath" ] && [ -d "$myPath" ]; then
+    data=$(find $myPath -type f -name "log4j*.jar")
+else
+    if [[ $(uname -s) == "AIX" ]]; then
+        data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
+    elif [[ $(uname -s) == "Linux" ]]; then
+        data=$(mount | grep -vE "/proc|nfs|nfs3|nfs4|mounted|--------" | awk '{print $3}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
+    fi
 fi
+
 echo "#######################################################"
 echo "# Searching whole system for log4j JAR files ...      #"
 echo "#######################################################"
@@ -104,11 +110,17 @@ echo "#########################################################################"
 echo "# Searching whole system for log4j JAR embedded in  archives ...        #"
 echo "#########################################################################"
 echo ""
-if [[ $(uname -s) == "AIX" ]]; then
-        data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {} -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"|grep -v "log4j.*\.jar")
-elif [[ $(uname -s) == "Linux" ]]; then
-        data=$(mount | grep -vE "/proc|nfs|mounted|--------" | awk '{print $3}' | xargs -I{} find {} -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"| grep -v "log4j.*\.jar")
+
+if [ -n "$myPath" ] && [ -d "$myPath" ]; then
+    data=$(find $myPath -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar" | grep -v "log4j.*\.jar")
+else
+	if [[ $(uname -s) == "AIX" ]]; then
+	        data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {} -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"|grep -v "log4j.*\.jar")
+	elif [[ $(uname -s) == "Linux" ]]; then
+	        data=$(mount | grep -vE "/proc|nfs|mounted|--------" | awk '{print $3}' | xargs -I{} find {} -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"| grep -v "log4j.*\.jar")
+	fi
 fi
+
 for candidate in $data; do 
 	echo "# Candidate: $candidate" 1>&2
 	log4js=$(strings $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
