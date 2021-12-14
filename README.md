@@ -8,6 +8,21 @@
   * log4j > 2.10 -- proposes to use the system-wide variable which ensure that JVM will disable the potential vulnerable functionality
 
 The script in it's native way just generates the remedation instructions (command by command) for the system it's been run on.
+## Fix for log4j (>=2.10)
+To mittigate with this issue for these log4j versions, you have to ensure that JVM will run with the appropriate variable. This could be achieved either by modifing all the JVM config or (easier) by introduce system-side variable which enforce this by following:
+
+```
+echo "export LOG4J_FORMAT_MSG_NO_LOOKUPS=true" > /etc/profile.d/log4j.sh
+
+# For system with systemd:
+if [ -e /etc/systemd/system.conf ]; then
+        if [[ ! $(fgrep LOG4J_FORMAT_MSG_NO_LOOKUPS /etc/systemd/system.conf) ]]; then
+        echo "DefaultEnvironment=\"LOG4J_FORMAT_MSG_NO_LOOKUPS=true\"" >> /etc/systemd/system.conf
+        fi
+fi
+```
+
+**IMPORTANT NOTE: ** In case of systemd init is in place, you have to reboot whole server to activate this! For SystemV init derivates, restart of the application should be sufficient.
 
 ## Usage
 
