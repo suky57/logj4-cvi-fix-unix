@@ -139,6 +139,12 @@ for candidate in $data; do
         echo "# OK: There is no log4j directly included in this archive" 1>&2
         echo 1>&2
     fi
+	# match for false positives
+	if [[ $(unzip -l $candidate | awk '{print $4}' | grep -iE "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class") ]]; then
+		continue
+	fi
+
+
     for log4j in $log4js; do
         echo "# Candidate: $candidate"
             owner=$(ls -lad $candidate| awk '{print $3}')
