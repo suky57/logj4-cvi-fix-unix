@@ -17,6 +17,13 @@ The script in it's native way just generates the remedation instructions (comman
 ./log4j.sh |sh #also invocate the instructions
 ```
 
+You could also **limit the script to be invoked just for particular directory** - it could be handy in case that you want to remediate one single application.
+
+```
+./log4j <directory_path> # will check <directory_path>
+./log4j <directory_path> |sh # will do the remediation
+```
+
 After the instructions are invocated then, application restart is needed - in some cases, reboot of whole server could be the more faster approach.
 
 
