@@ -1,6 +1,8 @@
 #!/bin/bash
 
 LANG=C
+IFS=$'\n'
+
 
 if [[ $(uname -s) == "AIX" ]]; then
 	data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
