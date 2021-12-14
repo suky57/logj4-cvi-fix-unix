@@ -9,8 +9,12 @@ echo "#######################################################"
 if [ -n "$myPath" ] && [ -d "$myPath" ]; then
     echo "# Searching dir '$myPath' for log4j JAR files ..."
     data=$(find $myPath -type f -name "log4j*.jar")
+elif [ -n "$myPath" ]; then
+    echo "# Specified dir '$myPath' doesn't exist ..."
+    echo "#########################################################################"
+    exit 2
 else
-echo "# Searching whole system for log4j JAR files ..."
+    echo "# Searching whole system for log4j JAR files ..."
     if [[ $(uname -s) == "AIX" ]]; then
         data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
     elif [[ $(uname -s) == "Linux" ]]; then
@@ -112,6 +116,10 @@ echo "#########################################################################"
 if [ -n "$myPath" ] && [ -d "$myPath" ]; then
     echo "# Searching dir '$myPath' for log4j JAR embedded in various types of Java archives ..."
     data=$(find $myPath -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar" | grep -v "log4j.*\.jar")
+elif [ -n "$myPath" ]; then
+    echo "# Specified dir '$myPath' doesn't exist ..."
+    echo "#########################################################################"
+    exit 2
 else
     echo "# Searching whole system for log4j JAR embedded in various types of Java archives ..."
     if [[ $(uname -s) == "AIX" ]]; then
