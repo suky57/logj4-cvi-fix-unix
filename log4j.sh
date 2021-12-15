@@ -130,7 +130,27 @@ for candidate in $data; do
 	if [[ $(unzip -l $candidate | awk '{print $4}' | grep -iE "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class") ]]; then
 		continue
 	fi
-
+	
+	# case of war file - very simple heuristic
+	if [[ $(echo $candidate |grep ".war$") ]]; then
+		echo "# ${candidate} -  WAR archive found"
+		matches=$(unzip -l $candidate |grep ".*log4j.*.jar"| awk '{print $NF}')
+		for match in $matches; do
+			dir=$(echo $match |cut -d"/" -f1)
+			echo "# Candidate inside war: $match" 1>&2
+			echo "unzip $candidate $match -d ." 1>&2
+			if [[ $(strings \"$match\" | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"') ]]; then
+				echo "# match: $match":
+				echo "$0 \"${dir}\" | sh"
+				echo "zip $candidate $match"
+				echo "rm -Rf \"${dir}\""
+				continue
+			fi
+			echo "# OK: $match seems not to be violated"
+			echo 1>&2
+		done 
+		continue
+	fi
 
     for log4j in $log4js; do
         echo "# Candidate: $candidate"
