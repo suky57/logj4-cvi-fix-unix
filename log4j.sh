@@ -65,8 +65,8 @@ for log4j in $data ; do
     fi
 
 
-    #version up to 2.10x stream:
-    if [ $(echo "$version" | grep -E "^2\.[0-9]([^0-9]|$)") ]; then
+    #version >= 2.0:
+    if [ $(echo "$version" | grep  "^2\(\.\d+\)*") ]; then
         if [ $(echo $log4j |grep "log4j-core-") ]; then
             is_vuln=$(strings $log4j |fgrep -i "log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
             if [ -z "$is_vuln" ]; then
@@ -77,7 +77,7 @@ for log4j in $data ; do
 
             echo "# ${log4j},${version}"
             echo "# Ownership: $owner:$group"
-            echo "# vers 2.x (lower than 2.10): class should be removed"
+            echo "# vers 2.x: class should be removed"
             echo "#1) make an backup of $log4j"
             echo "cp -p \"${log4j}\" \"${log4j}.bak-$(date +%s)\""
             echo "#2) Remove the class from the classpath"
@@ -88,22 +88,9 @@ for log4j in $data ; do
             echo "chown $owner:$group $log4j"
 
         else
-            echo "# OK: for version 2.x (prior to 2.10) just log4j-core module should be updated." 1>&2
+            echo "# OK: for version 2.x  just log4j-core module should be updated." 1>&2
             echo
             continue
-        fi
-    fi
-
-    # version >=2.10 stream:
-    if [ $(echo $version |grep "^2\.[1-9][0-9]") ]; then
-        echo "# ${log4j},${version}"
-        echo "# Ownership: $owner:$group"
-        echo "# vers >= 2.10:"
-        envvar=$(env | fgrep LOG4J_FORMAT_MSG_NO_LOOKUPS |cut -d= -f2)
-        if [[ $envvar == "true" ]]; then
-            echo "# OK: issue remediated, system-wide variable is in place."
-        else
-            echo "# WARNING: System-side variable LOG4J_FORMAT_MSG_NO_LOOKUPS=true MUST to be set"
         fi
     fi
 

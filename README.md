@@ -1,11 +1,15 @@
-# CVE-2021-44228 Log4j fix
+# Log4j fix
+
+This solution provides a fix for the following CVEs:
+* CVE-2021-44228
+* CVE-2021-4104
+* CVE-2021-45046
 
 * this script scans the systems by the following rules
   * scans for all log4j*.jar files in first part,
   * scans for all potential Java Archive files and check if the log4j related stuff is embedded in
 * If some of the above scans has findings, than it could act according the proposed solutions -- THIS SCRIPT IS INTENDED for the case, where upgrade to the latest version of log4j is not a way!
   * log4j 1.x and <= 2.10.x -- remove the vulnerable class from the classpath
-  * log4j > 2.10 -- proposes to use the system-wide variable which ensure that JVM will disable the potential vulnerable functionality
 
 The script in it's native way just generates the remedation instructions (command by command) for the system it's been run on.
 ## Fix for log4j (>=2.10)
