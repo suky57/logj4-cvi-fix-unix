@@ -133,7 +133,7 @@ for candidate in $data; do
 	
 	# case of war file - very simple heuristic
 	if [[ $(echo $candidate |grep ".war$") ]]; then
-		echo "# ${candidate} -  WAR archive found"
+		echo "# ${candidate} -  WAR archive found" 1>&2
 		matches=$(unzip -l $candidate |grep ".*log4j.*.jar"| awk '{print $NF}')
 		for match in $matches; do
 			dir=$(echo $match |cut -d"/" -f1)
