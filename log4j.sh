@@ -120,7 +120,7 @@ echo
 
 for candidate in $data; do 
     echo "# Candidate: $candidate" 1>&2
-    log4js=$(strings $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
+    log4js=$(unzip -l $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
 
     if [ -z "$log4js" ]; then
         echo "# OK: There is no log4j directly included in this archive" 1>&2
