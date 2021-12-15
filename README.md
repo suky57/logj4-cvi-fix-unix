@@ -5,14 +5,19 @@ This solution provides a fix for the following CVEs:
 * CVE-2021-4104
 * CVE-2021-45046
 
-* this script scans the systems by the following rules
+Tthis script scans the systems by the following rules
   * scans for all log4j*.jar files in first part,
   * scans for all potential Java Archive files and check if the log4j related stuff is embedded in
-* If some of the above scans has findings, than it could act according the proposed solutions -- THIS SCRIPT IS INTENDED for the case, where upgrade to the latest version of log4j is not a way!
-  * log4j 1.x and <= 2.10.x -- remove the vulnerable class from the classpath
+
+Depending on founded version, it will remove the appropriate class from the Java Archive. 
 
 The script in it's native way just generates the remedation instructions (command by command) for the system it's been run on.
+
+
 ## Fix for log4j (>=2.10)
+
+This is probably covered by removing the classes from the Java Archives. To be sure, system-wide variable disabling the JdniLookups might be the good idea anyway.
+
 To mittigate with this issue for these log4j versions, you have to ensure that JVM will run with the appropriate variable. This could be achieved either by modifing all the JVM config or (easier) by introduce system-side variable which enforce this by following:
 
 ```
