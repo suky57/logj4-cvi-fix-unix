@@ -8,7 +8,7 @@ myPath=$1
 echo "#######################################################"
 if [ -n "$myPath" ] && [ -d "$myPath" ]; then
     echo "# Searching dir '$myPath' for log4j JAR files ..."
-    data=$(find $myPath -type f -name "log4j*.jar")
+    data=$(find $myPath -xdev -type f -name "log4j*.jar")
 elif [ -n "$myPath" ]; then
     echo "# Specified dir '$myPath' doesn't exist ..."
     echo "#########################################################################"
@@ -51,7 +51,7 @@ for log4j in $data ; do
             continue
         fi
 
-        echo "# Candidate: ${log4j},${version}"
+        echo "# ${log4j},${version}"
         echo "# Ownership: $owner:$group"
         echo "# vers 1.x: class should be removed"
         echo "#1) make an backup of $log4j"
@@ -75,7 +75,7 @@ for log4j in $data ; do
                 continue
             fi
 
-            echo "# Candidate: ${log4j},${version}"
+            echo "# ${log4j},${version}"
             echo "# Ownership: $owner:$group"
             echo "# vers 2.x (lower than 2.10): class should be removed"
             echo "#1) make an backup of $log4j"
@@ -115,7 +115,7 @@ done
 echo "#########################################################################"
 if [ -n "$myPath" ] && [ -d "$myPath" ]; then
     echo "# Searching dir '$myPath' for log4j JAR embedded in various types of Java archives ..."
-    data=$(find $myPath -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar" | grep -v "log4j.*\.jar")
+    data=$(find $myPath -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar" | grep -v "log4j.*\.jar")
 elif [ -n "$myPath" ]; then
     echo "# Specified dir '$myPath' doesn't exist ..."
     echo "#########################################################################"
