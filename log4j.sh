@@ -51,7 +51,7 @@ for log4j in $data ; do
             continue
         fi
 
-        echo "# ${log4j},${version}"
+        echo "# Candidate: ${log4j},${version}"
         echo "# Ownership: $owner:$group"
         echo "# vers 1.x: class should be removed"
         echo "#1) make an backup of $log4j"
@@ -75,7 +75,7 @@ for log4j in $data ; do
                 continue
             fi
 
-            echo "# ${log4j},${version}"
+            echo "# Candidate: ${log4j},${version}"
             echo "# Ownership: $owner:$group"
             echo "# vers 2.x (lower than 2.10): class should be removed"
             echo "#1) make an backup of $log4j"
