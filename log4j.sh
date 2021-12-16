@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/ksh
 
 LANG=C
 IFS=$'\n'
@@ -15,9 +15,9 @@ elif [ -n "$myPath" ]; then
     exit 2
 else
     echo "# Searching whole system for log4j JAR files ..."
-    if [[ $(uname -s) == "AIX" ]]; then
+    if [ $(uname -s) == "AIX" ]; then
         data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
-    elif [[ $(uname -s) == "Linux" ]]; then
+    elif [ $(uname -s) == "Linux" ]; then
         data=$(mount | grep -vE "/proc|nfs|nfs3|nfs4|mounted|--------" | awk '{print $3}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
     fi
 fi
@@ -109,9 +109,9 @@ elif [ -n "$myPath" ]; then
     exit 2
 else
     echo "# Searching whole system for log4j JAR embedded in various types of Java archives ..."
-    if [[ $(uname -s) == "AIX" ]]; then
+    if [ $(uname -s) == "AIX" ]; then
             data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {} -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"|grep -v "log4j.*\.jar")
-    elif [[ $(uname -s) == "Linux" ]]; then
+    elif [ $(uname -s) == "Linux" ]; then
             data=$(mount | grep -vE "/proc|nfs|mounted|--------" | awk '{print $3}' | xargs -I{} find {} -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"| grep -v "log4j.*\.jar")
     fi
 fi
@@ -127,19 +127,19 @@ for candidate in $data; do
         echo 1>&2
     fi
 	# match for false positives
-	if [[ $(unzip -l $candidate | awk '{print $4}' | grep -iE "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class") ]]; then
+	if [ $(unzip -l $candidate | awk '{print $4}' | grep -iE "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class") ]; then
 		continue
 	fi
 	
 	# case of war file - very simple heuristic
-	if [[ $(echo $candidate |grep ".war$") ]]; then
+	if [ $(echo $candidate |grep ".war$") ]; then
 		echo "# ${candidate} -  WAR archive found" 1>&2
 		matches=$(unzip -l $candidate |grep ".*log4j.*.jar"| awk '{print $NF}')
 		for match in $matches; do
 			dir=$(echo $match |cut -d"/" -f1)
 			echo "# Candidate inside war: $match" 1>&2
 			echo "unzip $candidate $match -d ." 1>&2
-			if [[ $(strings \"$match\" | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"') ]]; then
+			if [ $(strings \"$match\" | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"') ]; then
 				echo "# match: $match":
 				echo "$0 \"${dir}\" | sh"
 				echo "zip $candidate $match"
