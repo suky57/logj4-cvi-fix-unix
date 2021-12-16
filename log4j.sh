@@ -9,10 +9,12 @@ _cmd_unzip=unzip
 
 # VIOS check
 if [ -e "/usr/ios/cli/ioscli" ]; then
-    unset IFS
     _cmd_zip=/nim/tools/zip
     _cmd_unzip=/nim/tools/unzip
 fi
+
+# The defaults rear its ugly head again: ksh88
+[ $(uname -s) == "AIX" ] && unset IFS
 
 echo "#######################################################"
 if [ -n "$_myPath" ] && [ -d "$_myPath" ]; then
