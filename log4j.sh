@@ -46,7 +46,7 @@ for log4j in $data ; do
     fi
     owner=$(ls -lad $log4j| awk '{print $3}')
     group=$(ls -lad $log4j| awk '{print $4}')
-    echo "# ${log4j},${version}" 1>&2
+    echo "# Candidate: ${log4j},${version}" 1>&2
     echo "# Ownership: $owner:$group" 1>&2
 
     # thrown warning if version couldn't be determined
@@ -165,8 +165,8 @@ for candidate in $data; do
 			fi
 		done 
 	fi
-	if [[ $(echo $candidate| grep ".war$" ) ]]; then
-		if [[ $(strings $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"') ]]; then
+	if [ $(echo $candidate| grep ".war$" ) ]; then
+		if [ $(strings $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"') ]; then
 			echo "# $candidate"
 		fi
 		echo "# OK: $match seems not to be violated"
