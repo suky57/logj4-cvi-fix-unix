@@ -14,7 +14,9 @@ if [ -e "/usr/ios/cli/ioscli" ]; then
 fi
 
 # The defaults rear its ugly head again: ksh88
-[ $(uname -s) == "AIX" ] && unset IFS
+if [ "$(uname -s)" == "AIX" ] || [ "$(uname -s)" == "SunOS" ]; then
+    unset IFS
+fi
 
 echo "#######################################################"
 if [ -n "$_myPath" ] && [ -d "$_myPath" ]; then
@@ -26,19 +28,21 @@ elif [ -n "$_myPath" ]; then
     exit 2
 else
     echo "# Searching whole system for log4j JAR files ..."
-    if [ $(uname -s) == "AIX" ]; then
+    if [ "$(uname -s)" == "AIX" ]; then
         data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
-    elif [ $(uname -s) == "Linux" ]; then
+    elif [ "$(uname -s)" == "Linux" ]; then
         data=$(mount | grep -vE "/proc|nfs|nfs3|nfs4|mounted|--------" | awk '{print $3}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
+    elif [ "$(uname -s)" == "SunOS" ]; then
+        data=$(mount | egrep -v "^/proc|^/system|^/platform|^/dev|^/[rs]pool|nfs[34]|^/etc/mnttab|^/etc/svc/volatile|^/etc/dfs/sharetab" | awk '{print $1}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
     fi
 fi
 echo "#######################################################"
 echo
 
 for log4j in $data ; do
-    version=$($_cmd_unzip -q -c ${log4j} META-INF/MANIFEST.MF |  grep -i "Implementation-Version" | perl -ne '/(\d.*\S)/ && print "$1"' |head -n1)
+    version=$($_cmd_unzip -q -c ${log4j} META-INF/MANIFEST.MF | grep -i "Implementation-Version" | perl -ne '/(\d.*\S)/ && print "$1"' | head -n1)
     if [ -z "$version" ]; then
-        version=$($_cmd_unzip -q -c ${log4j} META-INF/MANIFEST.MF |  grep -i "Library-Version" | perl -ne '/(\d.*\S)/ && print "$1"' |head -n1)
+        version=$($_cmd_unzip -q -c ${log4j} META-INF/MANIFEST.MF | grep -i "Library-Version" | perl -ne '/(\d.*\S)/ && print "$1"' | head -n1)
     fi
     owner=$(ls -lad $log4j| awk '{print $3}')
     group=$(ls -lad $log4j| awk '{print $4}')
@@ -53,8 +57,8 @@ for log4j in $data ; do
     fi
 
     # version 1.x stream
-    if [ $(echo $version |grep "^1\.") ]; then
-        is_vuln=$(strings $log4j |fgrep -i "log4j/net/JMSAppender.class" | perl -ne  '/(.*)PK$/ && print "$1"')
+    if [ $(echo $version | grep "^1\.") ]; then
+        is_vuln=$(strings $log4j | fgrep -i "log4j/net/JMSAppender.class" | perl -ne  '/(.*)PK$/ && print "$1"')
         if [ -z "$is_vuln" ]; then
             echo "# OK: issue remediated" 1>&2
             echo "" 1>&2
@@ -77,9 +81,9 @@ for log4j in $data ; do
 
 
     #version >= 2.0:
-    if [ $(echo "$version" | grep  "^2\(\.\d+\)*") ]; then
-        if [ $(echo $log4j |grep "log4j-core-") ]; then
-            is_vuln=$(strings $log4j |fgrep -i "log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
+    if [ $(echo "$version" | grep "^2\(\.\d+\)*") ]; then
+        if [ $(echo $log4j | grep "log4j-core-") ]; then
+            is_vuln=$(strings $log4j | fgrep -i "log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
             if [ -z "$is_vuln" ]; then
                 echo "# OK: issue remediated" 1>&2
                 echo "" 1>&2
@@ -120,16 +124,18 @@ elif [ -n "$_myPath" ]; then
     exit 2
 else
     echo "# Searching whole system for log4j JAR embedded in various types of Java archives ..."
-    if [ $(uname -s) == "AIX" ]; then
-            data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {} -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"|grep -v "log4j.*\.jar")
-    elif [ $(uname -s) == "Linux" ]; then
-            data=$(mount | grep -vE "/proc|nfs|mounted|--------" | awk '{print $3}' | xargs -I{} find {} -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"| grep -v "log4j.*\.jar")
+    if [ "$(uname -s)" == "AIX" ]; then
+        data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {} -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"| grep -v "log4j.*\.jar")
+    elif [ "$(uname -s)" == "Linux" ]; then
+        data=$(mount | grep -vE "/proc|nfs|mounted|--------" | awk '{print $3}' | xargs -I{} find {} -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"| grep -v "log4j.*\.jar")
+    elif [ "$(uname -s)" == "SunOS" ]; then
+        data=$(mount | egrep -v "^/proc|^/system|^/platform|^/dev|^/[rs]pool|nfs[34]|^/etc/mnttab|^/etc/svc/volatile|^/etc/dfs/sharetab" | awk '{print $1}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
     fi
 fi
 echo "#########################################################################"
 echo
 
-for candidate in $data; do 
+for candidate in $data; do
     echo "# Candidate: $candidate" 1>&2
     log4js=$($_cmd_unzip -l $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
 
@@ -138,14 +144,14 @@ for candidate in $data; do
         echo 1>&2
     fi
 	# match for false positives
-	if [ $($_cmd_unzip -l $candidate | awk '{print $4}' | grep -iE "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class") ]; then
+	if [ $($_cmd_unzip -l $candidate | awk '{print $4}' | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class") ]; then
 		continue
 	fi
 	
 	# case of war file - very simple heuristic
-	if [ $(echo $candidate |grep ".war$") ]; then
+	if [ $(echo $candidate | grep ".war$") ]; then
 		echo "# ${candidate} -  WAR archive found" 1>&2
-		matches=$($_cmd_unzip -l $candidate |grep ".*log4j.*.jar"| awk '{print $NF}')
+		matches=$($_cmd_unzip -l $candidate | grep ".*log4j.*.jar"| awk '{print $NF}')
 		for match in $matches; do
 			dir=$(echo $match |cut -d"/" -f1)
 			echo "# Candidate inside war: $match" 1>&2
