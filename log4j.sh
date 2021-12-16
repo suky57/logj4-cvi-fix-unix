@@ -3,14 +3,23 @@
 LANG=C
 IFS=$'\n'
 
-myPath=$1
+_myPath=$1
+_cmd_zip=zip
+_cmd_unzip=unzip
+
+# VIOS check
+if [ -e "/usr/ios/cli/ioscli" ]; then
+    unset IFS
+    _cmd_zip=/nim/tools/zip
+    _cmd_unzip=/nim/tools/unzip
+fi
 
 echo "#######################################################"
-if [ -n "$myPath" ] && [ -d "$myPath" ]; then
-    echo "# Searching dir '$myPath' for log4j JAR files ..."
-    data=$(find $myPath -xdev -type f -name "log4j*.jar")
-elif [ -n "$myPath" ]; then
-    echo "# Specified dir '$myPath' doesn't exist ..."
+if [ -n "$_myPath" ] && [ -d "$_myPath" ]; then
+    echo "# Searching dir '$_myPath' for log4j JAR files ..."
+    data=$(find $_myPath -xdev -type f -name "log4j*.jar")
+elif [ -n "$_myPath" ]; then
+    echo "# Specified dir '$_myPath' doesn't exist ..."
     echo "#########################################################################"
     exit 2
 else
@@ -25,9 +34,9 @@ echo "#######################################################"
 echo
 
 for log4j in $data ; do
-    version=$(unzip -q -c ${log4j} META-INF/MANIFEST.MF |  grep -i "Implementation-Version" | perl -ne '/(\d.*\S)/ && print "$1"' |head -n1)
+    version=$($_cmd_unzip -q -c ${log4j} META-INF/MANIFEST.MF |  grep -i "Implementation-Version" | perl -ne '/(\d.*\S)/ && print "$1"' |head -n1)
     if [ -z "$version" ]; then
-        version=$(unzip -q -c ${log4j} META-INF/MANIFEST.MF |  grep -i "Library-Version" | perl -ne '/(\d.*\S)/ && print "$1"' |head -n1)
+        version=$($_cmd_unzip -q -c ${log4j} META-INF/MANIFEST.MF |  grep -i "Library-Version" | perl -ne '/(\d.*\S)/ && print "$1"' |head -n1)
     fi
     owner=$(ls -lad $log4j| awk '{print $3}')
     group=$(ls -lad $log4j| awk '{print $4}')
@@ -58,7 +67,7 @@ for log4j in $data ; do
         echo "cp -p \"${log4j}\" \"${log4j}.bak-$(date +%s)\""
         echo "#2) Remove the class from the classpath"
         for j in $is_vuln; do
-            echo "zip -q -d \"${log4j}\" \"${j}\""
+            echo "$_cmd_zip -q -d \"${log4j}\" \"${j}\""
         done
         echo "#3) Restore the ownership: "
         echo "chown $owner:$group \"$log4j\""
@@ -82,7 +91,7 @@ for log4j in $data ; do
             echo "cp -p \"${log4j}\" \"${log4j}.bak-$(date +%s)\""
             echo "#2) Remove the class from the classpath"
             for j in $is_vuln; do
-                echo "zip -q -d \"${log4j}\" \"${j}\""
+                echo "$_cmd_zip -q -d \"${log4j}\" \"${j}\""
             done
             echo "#3) Restore the ownership: "
             echo "chown $owner:$group $log4j"
@@ -100,11 +109,11 @@ done
 
 
 echo "#########################################################################"
-if [ -n "$myPath" ] && [ -d "$myPath" ]; then
-    echo "# Searching dir '$myPath' for log4j JAR embedded in various types of Java archives ..."
-    data=$(find $myPath -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar" | grep -v "log4j.*\.jar")
-elif [ -n "$myPath" ]; then
-    echo "# Specified dir '$myPath' doesn't exist ..."
+if [ -n "$_myPath" ] && [ -d "$_myPath" ]; then
+    echo "# Searching dir '$_myPath' for log4j JAR embedded in various types of Java archives ..."
+    data=$(find $_myPath -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar" | grep -v "log4j.*\.jar")
+elif [ -n "$_myPath" ]; then
+    echo "# Specified dir '$_myPath' doesn't exist ..."
     echo "#########################################################################"
     exit 2
 else
@@ -120,29 +129,29 @@ echo
 
 for candidate in $data; do 
     echo "# Candidate: $candidate" 1>&2
-    log4js=$(unzip -l $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
+    log4js=$($_cmd_unzip -l $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
 
     if [ -z "$log4js" ]; then
         echo "# OK: There is no log4j directly included in this archive" 1>&2
         echo 1>&2
     fi
 	# match for false positives
-	if [ $(unzip -l $candidate | awk '{print $4}' | grep -iE "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class") ]; then
+	if [ $($_cmd_unzip -l $candidate | awk '{print $4}' | grep -iE "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class") ]; then
 		continue
 	fi
 	
 	# case of war file - very simple heuristic
 	if [ $(echo $candidate |grep ".war$") ]; then
 		echo "# ${candidate} -  WAR archive found" 1>&2
-		matches=$(unzip -l $candidate |grep ".*log4j.*.jar"| awk '{print $NF}')
+		matches=$($_cmd_unzip -l $candidate |grep ".*log4j.*.jar"| awk '{print $NF}')
 		for match in $matches; do
 			dir=$(echo $match |cut -d"/" -f1)
 			echo "# Candidate inside war: $match" 1>&2
-			echo "unzip $candidate $match -d ." 1>&2
+			echo "$_cmd_unzip $candidate $match -d ." 1>&2
 			if [ $(strings \"$match\" | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"') ]; then
 				echo "# match: $match":
 				echo "$0 \"${dir}\" | sh"
-				echo "zip $candidate $match"
+				echo "$_cmd_zip $candidate $match"
 				echo "rm -Rf \"${dir}\""
 				continue
 			fi
@@ -160,7 +169,7 @@ for candidate in $data; do
                 echo "#1) make an backup of $candidate"
                 echo "cp -p \"${candidate}\" \"${candidate}.bak-$(date +%s)\""
                 echo "#2) Removethe class from the classpath"
-                echo "zip -q -d \"${candidate}\" \"$log4j\""
+                echo "$_cmd_zip -q -d \"${candidate}\" \"$log4j\""
                 echo "#3) Restore the ownership: "
                 echo "chown $owner:$group \"$candidate\""
 
