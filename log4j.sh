@@ -168,7 +168,7 @@ for candidate in $data; do
 		if [ $(strings $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"') ]; then
 			echo "# $candidate"
 		fi
-		echo "# OK: $match seems not to be violated"
+		echo "# OK: $match seems not to be violated" 1>&2
 		echo "" 
 		continue
 	fi
