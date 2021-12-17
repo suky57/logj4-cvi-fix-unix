@@ -150,14 +150,13 @@ for candidate in $data; do
 	
 	# case of war file - very simple heuristic
 	if [ $(echo $candidate | grep ".war$") ]; then
-		echo "# ${candidate} -  WAR archive found" 1>&2
 		matches=$($_cmd_unzip -l $candidate | grep ".*log4j.*.jar"| awk '{print $NF}')
 		for match in $matches; do
 			dir=$(echo $match |cut -d"/" -f1)
 			echo "# Candidate inside war: $match" 1>&2
 			echo "$_cmd_unzip $candidate $match -d ." 1>&2
 			if [ $(strings \"$match\" | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"') ]; then
-				echo "# match: $match":
+				echo "# $candidate($match)":
 				echo "$0 \"${dir}\" | sh"
 				echo "$_cmd_zip $candidate $match"
 				echo "rm -Rf \"${dir}\""
@@ -175,7 +174,7 @@ for candidate in $data; do
 	fi
 
     for log4j in $log4js; do
-        echo "# Candidate: $candidate"
+        echo "# $candidate"
             owner=$(ls -lad $candidate| awk '{print $3}')
             group=$(ls -lad $candidate| awk '{print $4}')
         echo "# Found class: $log4j"
