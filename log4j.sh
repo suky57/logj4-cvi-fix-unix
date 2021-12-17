@@ -21,7 +21,7 @@ fi
 echo "#######################################################"
 if [ -n "$_myPath" ] && [ -d "$_myPath" ]; then
     echo "# Searching dir '$_myPath' for log4j JAR files ..."
-    data=$(find $_myPath -xdev -type f -name "log4j*.jar")
+    data=$(find $_myPath  -type f -name "log4j*.jar")
 elif [ -n "$_myPath" ]; then
     echo "# Specified dir '$_myPath' doesn't exist ..."
     echo "#########################################################################"
@@ -117,7 +117,7 @@ done
 echo "#########################################################################"
 if [ -n "$_myPath" ] && [ -d "$_myPath" ]; then
     echo "# Searching dir '$_myPath' for log4j JAR embedded in various types of Java archives ..."
-    data=$(find $_myPath -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar" | grep -v "log4j.*\.jar")
+    data=$(find $_myPath -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar" | grep -v "log4j.*\.jar")
 elif [ -n "$_myPath" ]; then
     echo "# Specified dir '$_myPath' doesn't exist ..."
     echo "#########################################################################"
