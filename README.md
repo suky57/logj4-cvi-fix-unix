@@ -35,17 +35,18 @@ fi
 
 ## Usage
 
-```
-./log4j.sh #just provides the instructions
-./log4j.sh > vulnerable 2> already_remediated
-./log4j.sh |sh #also invocate the instructions
-```
+Script could be trigerred by the following ways:
+1. ./log4j.sh (scans whole system)
+2. ./log4j.sh /directory/path (scans just particular directory)
 
-You could also **limit the script to be invoked just for particular directory** - it could be handy in case that you want to remediate one single application.
+Once done, following files are created:
+- /tmp/log4j.SCANNED - just handler which proves than scan was succesfull (I'm using it when gathering the data back to bu sure they are consistant)
+- /tmp/log4j.dat - this file contains the scanned data, including the remediation instructions
+
+### Remediation
 
 ```
-./log4j <directory_path> # will check <directory_path>
-./log4j <directory_path> |sh # will do the remediation
+cat /tmp/log4j.dat |sh
 ```
 
 After the instructions are invocated then, application restart is needed - in some cases, reboot of whole server could be the more faster approach.
