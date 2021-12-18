@@ -4,13 +4,28 @@ LANG=C
 IFS=$'\n'
 
 _myPath=$1
+_myLogFile="/tmp/log4j.dat"
+_myScannedFile="/tmp/log4j.SCANNED"
+_myNFS="/tmp/log4j_NFS"
 _cmd_zip=zip
 _cmd_unzip=unzip
+
+test -f ${_myLogFile} && rm ${_myLogFile}
 
 # VIOS check
 if [ -e "/usr/ios/cli/ioscli" ]; then
     _cmd_zip=/nim/tools/zip
     _cmd_unzip=/nim/tools/unzip
+else
+	# if not VIO, ensure the output is collected in the logfile
+	exec 3>&1
+	exec 4>&2
+	exec 1>"${_myLogFile}"  2>&1
+
+	# mount the remote NFS
+	test ! -d ${_myNFS} && mkdir ${_myNFS}
+	mount dbkpinst01.rze.de.db.com:/export/mksysb/log4j ${_myNFS}
+	
 fi
 
 # The defaults rear its ugly head again: ksh88
@@ -18,10 +33,10 @@ if [ "$(uname -s)" == "AIX" ] || [ "$(uname -s)" == "SunOS" ]; then
     unset IFS
 fi
 
-test -f /tmp/log4j.SCANNED && rm /tmp/log4j.SCANNED
+test -f ${_myScannedFile} && rm ${_myScannedFile}
 
 
-echo "#######################################################"
+echo "#######################################################" >&3
 if [ -n "$_myPath" ] && [ -d "$_myPath" ]; then
     echo "# Searching dir '$_myPath' for log4j JAR files ..."
     data=$(find $_myPath  -type f -name "log4j*.jar")
@@ -32,7 +47,7 @@ elif [ -n "$_myPath" ]; then
 else
     echo "# Searching whole system for log4j JAR files ..."
     if [ "$(uname -s)" == "AIX" ]; then
-        data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {}  -type f -name "log4j*.jar")
+        data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {}  -xdev -type f -name "log4j*.jar")
     elif [ "$(uname -s)" == "Linux" ]; then
         data=$(mount | grep -vE "/proc|nfs|nfs3|nfs4|mounted|--------" | awk '{print $3}' | xargs -I{} find {}  -xdev -type f -name "log4j*.jar")
     elif [ "$(uname -s)" == "SunOS" ]; then
@@ -194,6 +209,10 @@ for candidate in $data; do
 done
 
 echo "===$(date '+%F %H:%M')" 
-touch /tmp/log4j.SCANNED
+touch ${_myScannedFile} 
 
-
+# Transfer data to NFS
+if [ ! -e "/usr/ios/cli/ioscli" ]; then 
+	cp ${_myLogFile} ${_myNFS}/`hostname`_vuln
+	umount ${_myNFS}
+fi
