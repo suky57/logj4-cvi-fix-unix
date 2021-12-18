@@ -18,6 +18,9 @@ if [ "$(uname -s)" == "AIX" ] || [ "$(uname -s)" == "SunOS" ]; then
     unset IFS
 fi
 
+test -f /tmp/log4j.SCANNED && rm /tmp/log4j.SCANNED
+
+
 echo "#######################################################"
 if [ -n "$_myPath" ] && [ -d "$_myPath" ]; then
     echo "# Searching dir '$_myPath' for log4j JAR files ..."
@@ -29,11 +32,11 @@ elif [ -n "$_myPath" ]; then
 else
     echo "# Searching whole system for log4j JAR files ..."
     if [ "$(uname -s)" == "AIX" ]; then
-        data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
+        data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {}  -type f -name "log4j*.jar")
     elif [ "$(uname -s)" == "Linux" ]; then
-        data=$(mount | grep -vE "/proc|nfs|nfs3|nfs4|mounted|--------" | awk '{print $3}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
+        data=$(mount | grep -vE "/proc|nfs|nfs3|nfs4|mounted|--------" | awk '{print $3}' | xargs -I{} find {}  -xdev -type f -name "log4j*.jar")
     elif [ "$(uname -s)" == "SunOS" ]; then
-        data=$(mount | egrep -v "^/proc|^/system|^/platform|^/dev|^/[rs]pool|^/etc/mnttab|^/etc/svc/volatile|^/etc/dfs/sharetab|\ remote/" | awk '{print $1}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
+        data=$(mount | egrep -v "^/proc|^/system|^/platform|^/dev|^/[rs]pool|^/etc/mnttab|^/etc/svc/volatile|^/etc/dfs/sharetab|\ remote/" | awk '{print $1}' | xargs -I{} find {}  -type f -xcev -name "log4j*.jar")
     fi
 fi
 echo "#######################################################"
@@ -117,7 +120,7 @@ done
 echo "#########################################################################"
 if [ -n "$_myPath" ] && [ -d "$_myPath" ]; then
     echo "# Searching dir '$_myPath' for log4j JAR embedded in various types of Java archives ..."
-    data=$(find $_myPath -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar" | grep -v "log4j.*\.jar")
+    data=$(find $_myPath  -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar" | grep -v "log4j.*\.jar")
 elif [ -n "$_myPath" ]; then
     echo "# Specified dir '$_myPath' doesn't exist ..."
     echo "#########################################################################"
@@ -125,11 +128,11 @@ elif [ -n "$_myPath" ]; then
 else
     echo "# Searching whole system for log4j JAR embedded in various types of Java archives ..."
     if [ "$(uname -s)" == "AIX" ]; then
-        data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {} -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"| grep -v "log4j.*\.jar")
+        data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {} -type f -xdev -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"| grep -v "log4j.*\.jar")
     elif [ "$(uname -s)" == "Linux" ]; then
-        data=$(mount | grep -vE "/proc|nfs|mounted|--------" | awk '{print $3}' | xargs -I{} find {} -xdev -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"| grep -v "log4j.*\.jar")
+        data=$(mount | grep -vE "/proc|nfs|mounted|--------" | awk '{print $3}' | xargs -I{} find {}  -type f -xdev -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"| grep -v "log4j.*\.jar")
     elif [ "$(uname -s)" == "SunOS" ]; then
-        data=$(mount | egrep -v "^/proc|^/system|^/platform|^/dev|^/[rs]pool|^/etc/mnttab|^/etc/svc/volatile|^/etc/dfs/sharetab|\ remote/" | awk '{print $1}' | xargs -I{} find {} -xdev -type f -name "log4j*.jar")
+        data=$(mount | egrep -v "^/proc|^/system|^/platform|^/dev|^/[rs]pool|^/etc/mnttab|^/etc/svc/volatile|^/etc/dfs/sharetab|\ remote/" | awk '{print $1}' | xargs -I{} find {}  -type f -name "log4j*.jar")
     fi
 fi
 echo "#########################################################################"
@@ -189,3 +192,8 @@ for candidate in $data; do
     done
 
 done
+
+echo "===$(date '+%F %H:%M')" 
+touch /tmp/log4j.SCANNED
+
+
