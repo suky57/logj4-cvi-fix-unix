@@ -36,7 +36,7 @@ fi
 test -f ${_myScannedFile} && rm ${_myScannedFile}
 
 
-echo "#######################################################" >&3
+echo "#######################################################" 
 if [ -n "$_myPath" ] && [ -d "$_myPath" ]; then
     echo "# Searching dir '$_myPath' for log4j JAR files ..."
     data=$(find $_myPath  -type f -name "log4j*.jar")
