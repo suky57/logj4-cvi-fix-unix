@@ -5,6 +5,7 @@ IFS=$'\n'
 
 _myPath=$1
 _myLogFile="/tmp/log4j.dat"
+_myLockFile="/tmp/log4j.lock"
 _myScannedFile="/tmp/log4j.SCANNED"
 _myNFS="/tmp/log4j_NFS"
 _cmd_zip=zip
@@ -27,6 +28,15 @@ else
 	mount dbkpinst01.rze.de.db.com:/export/mksysb/log4j ${_myNFS}
 	
 fi
+
+# Check the lock file, if exists, exit now!
+if [ -f ${_myLockFile} ]; then
+	echo "${_myLockFile} exists! Exitting ... "
+	exit 255
+else
+	touch ${_myLockFile}
+fi
+
 
 # The defaults rear its ugly head again: ksh88
 if [ "$(uname -s)" == "AIX" ] || [ "$(uname -s)" == "SunOS" ]; then
@@ -216,3 +226,6 @@ if [ ! -e "/usr/ios/cli/ioscli" ]; then
 	cp ${_myLogFile} ${_myNFS}/`hostname`_vuln
 	umount ${_myNFS}
 fi
+
+# remove lockfile
+rm ${_myLockFile}
