@@ -51,7 +51,7 @@ else
     elif [ "$(uname -s)" == "Linux" ]; then
         data=$(mount | grep -vE "/proc|nfs|nfs3|nfs4|mounted|--------" | awk '{print $3}' | xargs -I{} find {}  -xdev -type f -name "log4j*.jar")
     elif [ "$(uname -s)" == "SunOS" ]; then
-        data=$(mount | egrep -v "^/proc|^/system|^/platform|^/dev|^/[rs]pool|^/etc/mnttab|^/etc/svc/volatile|^/etc/dfs/sharetab|\ remote/" | awk '{print $1}' | xargs -I{} find {}  -type f -xcev -name "log4j*.jar")
+        data=$(mount | egrep -v "^/proc|^/system|^/platform|^/dev|^/[rs]pool|^/etc/mnttab|^/etc/svc/volatile|^/etc/dfs/sharetab|\ remote/" | awk '{print $1}' | xargs -I{} find {}  -type f -xdev -name "log4j*.jar")
     fi
 fi
 echo "#######################################################"
