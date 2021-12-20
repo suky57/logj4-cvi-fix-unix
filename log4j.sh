@@ -5,13 +5,14 @@ IFS=$'\n'
 
 _myPath=$1
 _myLogFile="/tmp/log4j.dat"
+_myErrorLogFile="/tmp/log4j.err"
 _myLockFile="/tmp/log4j.lock"
 _myScannedFile="/tmp/log4j.SCANNED"
 _myNFS="/tmp/log4j_NFS"
 _cmd_zip=zip
 _cmd_unzip=unzip
 
-test -f ${_myLogFile} && rm ${_myLogFile}
+test -f ${_myLogFile} && rm -f ${_myLogFile}
 
 # VIOS check
 if [ -e "/usr/ios/cli/ioscli" ]; then
@@ -21,7 +22,8 @@ else
 	# if not VIO, ensure the output is collected in the logfile
 	exec 3>&1
 	exec 4>&2
-	exec 1>"${_myLogFile}"  2>&1
+	exec 1>"${_myLogFile}" 
+	exec 2> "${_myErrorLogFile}"
 
 	# mount the remote NFS
 	test ! -d ${_myNFS} && mkdir ${_myNFS}
@@ -43,7 +45,7 @@ if [ "$(uname -s)" == "AIX" ] || [ "$(uname -s)" == "SunOS" ]; then
     unset IFS
 fi
 
-test -f ${_myScannedFile} && rm ${_myScannedFile}
+test -f ${_myScannedFile} && rm -f ${_myScannedFile}
 
 
 echo "#######################################################" 
@@ -218,7 +220,8 @@ for candidate in $data; do
 
 done
 
-echo "===$(date '+%F %H:%M')" 
+echo "#===$(date '+%F %H:%M')" 
+echo "#===Uptime: `uptime`"
 touch ${_myScannedFile} 
 
 # Transfer data to NFS
@@ -228,4 +231,4 @@ if [ ! -e "/usr/ios/cli/ioscli" ]; then
 fi
 
 # remove lockfile
-rm ${_myLockFile}
+rm -f ${_myLockFile}
