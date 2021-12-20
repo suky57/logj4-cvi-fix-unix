@@ -27,9 +27,11 @@ else
 
 	# mount the remote NFS
 	test ! -d ${_myNFS} && mkdir ${_myNFS}
-	mount dbkpinst01.rze.de.db.com:/export/mksysb/log4j ${_myNFS}
+	mount dbkpinst01s1.rze.de.db.com:/export/mksysb/log4j ${_myNFS}
 	
 fi
+
+
 
 # Check the lock file, if exists, exit now!
 if [ -f ${_myLockFile} ]; then
