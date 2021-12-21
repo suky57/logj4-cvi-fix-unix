@@ -61,7 +61,7 @@ elif [ -n "$_myPath" ]; then
 else
     echo "# Searching whole system for log4j JAR files ..."
     if [ "$(uname -s)" == "AIX" ]; then
-        data=$(mount | grep -vE "/proc|nfs3|nfs4|mounted|--------" | awk '{print $2}' | xargs -I{} find {}  -xdev -type f -name "log4j*.jar")
+        data=$(find / ! -fstype nfs ! -fstype procfs -type f -name "log4j*.jar")
     elif [ "$(uname -s)" == "Linux" ]; then
         data=$(mount | grep -vE "/proc|nfs|nfs3|nfs4|mounted|--------" | awk '{print $3}' | xargs -I{} find {}  -xdev -type f -name "log4j*.jar")
     elif [ "$(uname -s)" == "SunOS" ]; then
@@ -157,7 +157,7 @@ elif [ -n "$_myPath" ]; then
 else
     echo "# Searching whole system for log4j JAR embedded in various types of Java archives ..."
     if [ "$(uname -s)" == "AIX" ]; then
-        data=$(find / ! -fstype nfs ! -fstype procfs -type f -xdev -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"    | grep -v "log4j.*\.jar")
+        data=$(find / ! -fstype nfs ! -fstype procfs -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"    | grep -v "log4j.*\.jar")
     elif [ "$(uname -s)" == "Linux" ]; then
         data=$(mount | grep -vE "/proc|nfs|mounted|--------" | awk '{print $3}' | xargs -I{} find {}  -type f -xdev -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"| grep -v "log4j.*\.jar")
     elif [ "$(uname -s)" == "SunOS" ]; then
