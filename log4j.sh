@@ -187,7 +187,7 @@ for candidate in $data; do
 			dir=$(echo $match |cut -d"/" -f1)
 			echo "# Candidate inside war: $match" 1>&2
 			echo "$_cmd_unzip $candidate $match -d ." 1>&2
-			if [ $(strings \"$match\" | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"') ]; then
+			if [ $(strings $match | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"') ]; then
 				echo "# $candidate($match)":
 				echo "$0 \"${dir}\" | sh"
 				echo "$_cmd_zip $candidate $match"
@@ -197,9 +197,6 @@ for candidate in $data; do
 		done 
 	fi
 	if [ $(echo $candidate| grep ".war$" ) ]; then
-		if [ $(strings $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"') ]; then
-			echo "# $candidate"
-		fi
 		echo "# OK: $match seems not to be violated" 1>&2
 		echo "" 
 		continue
