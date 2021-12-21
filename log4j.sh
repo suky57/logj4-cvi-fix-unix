@@ -86,8 +86,8 @@ for log4j in $data ; do
 
     # thrown warning if version couldn't be determined
     if [ -z $version ]; then
-        echo "# WARNING: from this jar file, version couldn't be determined - MANIFEST is missing inside!"
-        echo
+        echo "# WARNING: from this jar file, version couldn't be determined - MANIFEST is missing inside!" 1>&2
+        echo 1>&2
         continue
     fi
 
@@ -96,7 +96,6 @@ for log4j in $data ; do
         is_vuln=$(strings $log4j | fgrep -i "log4j/net/JMSAppender.class" | perl -ne  '/(.*)PK$/ && print "$1"')
         if [ -z "$is_vuln" ]; then
             echo "# OK: issue remediated" 1>&2
-            echo "" 1>&2
             echo "" 1>&2
             continue
         fi
@@ -139,12 +138,14 @@ for log4j in $data ; do
 
         else
             echo "# OK: for version 2.x  just log4j-core module should be updated." 1>&2
-            echo
+            echo 1>&2
             continue
         fi
     fi
 
-    echo
+    echo "# NOK - file is violated!" 1>&2
+    echo ""
+    echo "" 1>&2
 
 done
 
@@ -171,11 +172,9 @@ else
 fi
 echo "#########################################################################"
 echo
-
 for candidate in $data; do
     echo "# Candidate: $candidate" 1>&2
     log4js=$($_cmd_unzip -l $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
-
 	# match for false positives
 	if [ $($_cmd_unzip -l $candidate | awk '{print $4}' | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class") ]; then
 		echo "# OK: in this archive, no log4j occurence" 1>&2
@@ -189,22 +188,22 @@ for candidate in $data; do
 		for match in $matches; do
 			dir=$(echo $match |cut -d"/" -f1)
 			echo "# Candidate inside war: $match" 
-			$_cmd_unzip \"$candidate\" \"$match\" -d . 
+			$_cmd_unzip "$candidate" "$match" -d . 
 			if [ $(strings $match | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"') ]; then
 				echo "# $candidate($match)":
 				echo "$0 \"${dir}\" | sh"
 				echo "$_cmd_zip $candidate $match"
-				rm -Rf \"${dir}\"
+				rm -Rf "${dir}"
 				echo ""
 				continue
 			fi
-                        rm -Rf \"${dir}\"
+                        rm -Rf "${dir}"
 
 		done 
 	fi
 	if [ $(echo $candidate| grep ".war$" ) ]; then
 		echo "# OK: $match seems not to be violated" 1>&2
-		echo "" > 1>&2
+		echo "" 1>&2
 		continue
 	fi
 
@@ -212,17 +211,17 @@ for candidate in $data; do
         echo "# $candidate"
             owner=$(ls -lad $candidate| awk '{print $3}')
             group=$(ls -lad $candidate| awk '{print $4}')
-        echo "# Found class: $log4j"
+                echo "# Found class: $log4j"
                 echo "#1) make an backup of $candidate"
                 echo "cp -p \"${candidate}\" \"${candidate}.bak-$(date +%s)\""
                 echo "#2) Removethe class from the classpath"
                 echo "$_cmd_zip -q -d \"${candidate}\" \"$log4j\""
                 echo "#3) Restore the ownership: "
-                echo "chown $owner:$group \"$candidate\""
-
-    echo
-
+   done 
+   echo ""
+   echo "" 1>&2
 done
+
 
 echo "#===$(date '+%F %H:%M')" 
 echo "#===Uptime: `uptime`"
