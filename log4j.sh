@@ -6,6 +6,7 @@ IFS=$'\n'
 _myPath=$1
 _myLogFile="/tmp/log4j.dat"
 _myErrorLogFile="/tmp/log4j.err"
+_myCSVFile="/tmp/log4j.csv"
 _myLockFile="/tmp/log4j.lock"
 _myScannedFile="/tmp/log4j.SCANNED"
 _myNFS="/tmp/log4j_NFS"
@@ -22,6 +23,7 @@ else
 	# if not VIO, ensure the output is collected in the logfile
 	exec 3>&1
 	exec 4>&2
+	exec 5> ${_myCSVFile}
 	exec 1>"${_myLogFile}" 
 	exec 2> "${_myErrorLogFile}"
 
@@ -82,12 +84,15 @@ for log4j in $data ; do
     owner=$(ls -lad $log4j| awk '{print $3}')
     group=$(ls -lad $log4j| awk '{print $4}')
     echo "# Candidate: ${log4j},${version}" 1>&2
+    echo -n "$log4j:$version:" >&5
     echo "# Ownership: $owner:$group" 1>&2
 
     # thrown warning if version couldn't be determined
     if [ -z $version ]; then
         echo "# WARNING: from this jar file, version couldn't be determined - MANIFEST is missing inside!" 1>&2
         echo 1>&2
+	echo -n "NO_LOG4J_VERSION_DETECTED:???:" >&5
+	echo "" >&5
         continue
     fi
 
@@ -96,11 +101,13 @@ for log4j in $data ; do
         is_vuln=$(strings $log4j | fgrep -i "log4j/net/JMSAppender.class" | perl -ne  '/(.*)PK$/ && print "$1"')
         if [ -z "$is_vuln" ]; then
             echo "# OK: issue remediated" 1>&2
-            echo "" 1>&2
+	    echo -n "OK:" >&5
+	    echo "" 1>&2
             continue
         fi
 
         echo "# ${log4j},${version}"
+	echo -n "NOK:" >&5
         echo "# Ownership: $owner:$group"
         echo "# vers 1.x: class should be removed"
         echo "#1) make an backup of $log4j"
@@ -120,10 +127,12 @@ for log4j in $data ; do
             is_vuln=$(strings $log4j | fgrep -i "log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
             if [ -z "$is_vuln" ]; then
                 echo "# OK: issue remediated" 1>&2
-                echo "" 1>&2
+		echo -n "OK:" >&5
+		echo "" 1>&2
                 continue
             fi
 
+	    echo -n "NOK:" >&5
             echo "# ${log4j},${version}"
             echo "# Ownership: $owner:$group"
             echo "# vers 2.x: class should be removed"
@@ -138,14 +147,16 @@ for log4j in $data ; do
 
         else
             echo "# OK: for version 2.x  just log4j-core module should be updated." 1>&2
-            echo 1>&2
+	    echo "" 1>&2
+	    echo -n "OK:" >&5
             continue
         fi
     fi
 
     echo "# NOK - file is violated!" 1>&2
-    echo ""
+    echo  ""
     echo "" 1>&2
+    echo "" >&5
 
 done
 
