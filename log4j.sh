@@ -176,10 +176,6 @@ for candidate in $data; do
     echo "# Candidate: $candidate" 1>&2
     log4js=$($_cmd_unzip -l $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
 
-    if [ -z "$log4js" ]; then
-        echo "# OK: There is no log4j directly included in this archive" 1>&2
-        echo 1>&2
-    fi
 	# match for false positives
 	if [ $($_cmd_unzip -l $candidate | awk '{print $4}' | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class") ]; then
 		echo "# OK: in this archive, no log4j occurence" 1>&2
@@ -192,20 +188,23 @@ for candidate in $data; do
 		matches=$($_cmd_unzip -l $candidate | grep ".*log4j.*.jar"| awk '{print $NF}')
 		for match in $matches; do
 			dir=$(echo $match |cut -d"/" -f1)
-			echo "# Candidate inside war: $match" 1>&2
-			echo "$_cmd_unzip $candidate $match -d ." 1>&2
+			echo "# Candidate inside war: $match" 
+			$_cmd_unzip \"$candidate\" \"$match\" -d . 
 			if [ $(strings $match | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"') ]; then
 				echo "# $candidate($match)":
 				echo "$0 \"${dir}\" | sh"
 				echo "$_cmd_zip $candidate $match"
-				echo "rm -Rf \"${dir}\""
+				rm -Rf \"${dir}\"
+				echo ""
 				continue
 			fi
+                        rm -Rf \"${dir}\"
+
 		done 
 	fi
 	if [ $(echo $candidate| grep ".war$" ) ]; then
 		echo "# OK: $match seems not to be violated" 1>&2
-		echo "" 
+		echo "" > 1>&2
 		continue
 	fi
 
@@ -222,7 +221,6 @@ for candidate in $data; do
                 echo "chown $owner:$group \"$candidate\""
 
     echo
-    done
 
 done
 
