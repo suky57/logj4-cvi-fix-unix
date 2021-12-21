@@ -60,13 +60,16 @@ elif [ -n "$_myPath" ]; then
     exit 2
 else
     echo "# Searching whole system for log4j JAR files ..."
-    if [ "$(uname -s)" == "AIX" ]; then
-        data=$(find / ! -fstype nfs ! -fstype procfs -type f -name "log4j*.jar")
-    elif [ "$(uname -s)" == "Linux" ]; then
-        data=$(mount | grep -vE "/proc|nfs|nfs3|nfs4|mounted|--------" | awk '{print $3}' | xargs -I{} find {}  -xdev -type f -name "log4j*.jar")
-    elif [ "$(uname -s)" == "SunOS" ]; then
-        data=$(mount | egrep -v "^/proc|^/system|^/platform|^/dev|^/[rs]pool|^/etc/mnttab|^/etc/svc/volatile|^/etc/dfs/sharetab|\ remote/" | awk '{print $1}' | xargs -I{} find {}  -type f -xdev -name "log4j*.jar")
-    fi
+#    if [ "$(uname -s)" == "AIX" ]; then
+#        data=$(find / ! -fstype nfs ! -fstype procfs -type f -name "log4j*.jar")
+#    elif [ "$(uname -s)" == "Linux" ]; then
+#        data=$(mount | grep -vE "/proc|nfs|nfs3|nfs4|mounted|--------" | awk '{print $3}' | xargs -I{} find {}  -xdev -type f -name "log4j*.jar")
+#    elif [ "$(uname -s)" == "SunOS" ]; then
+#        data=$(mount | egrep -v "^/proc|^/system|^/platform|^/dev|^/[rs]pool|^/etc/mnttab|^/etc/svc/volatile|^/etc/dfs/sharetab|\ remote/" | awk '{print $1}' | xargs -I{} find {}  -type f -xdev -name "log4j*.jar")
+#    fi
+     data=$(find / ! -fstype nfs ! -fstype procfs -type f -name "log4j*.jar")
+
+
 fi
 echo "#######################################################"
 echo
@@ -156,13 +159,15 @@ elif [ -n "$_myPath" ]; then
     exit 2
 else
     echo "# Searching whole system for log4j JAR embedded in various types of Java archives ..."
-    if [ "$(uname -s)" == "AIX" ]; then
-        data=$(find / ! -fstype nfs ! -fstype procfs -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"    | grep -v "log4j.*\.jar")
-    elif [ "$(uname -s)" == "Linux" ]; then
-        data=$(mount | grep -vE "/proc|nfs|mounted|--------" | awk '{print $3}' | xargs -I{} find {}  -type f -xdev -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"| grep -v "log4j.*\.jar")
-    elif [ "$(uname -s)" == "SunOS" ]; then
-        data=$(mount | egrep -v "^/proc|^/system|^/platform|^/dev|^/[rs]pool|^/etc/mnttab|^/etc/svc/volatile|^/etc/dfs/sharetab|\ remote/" | awk '{print $1}' | xargs -I{} find {}  -type f -name "log4j*.jar")
-    fi
+#    if [ "$(uname -s)" == "AIX" ]; then
+#        data=$(find / ! -fstype nfs ! -fstype procfs -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"    | grep -v "log4j.*\.jar")
+#    elif [ "$(uname -s)" == "Linux" ]; then
+#        data=$(mount | grep -vE "/proc|nfs|mounted|--------" | awk '{print $3}' | xargs -I{} find {}  -type f -xdev -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"| grep -v "log4j.*\.jar")
+#    elif [ "$(uname -s)" == "SunOS" ]; then
+#        data=$(mount | egrep -v "^/proc|^/system|^/platform|^/dev|^/[rs]pool|^/etc/mnttab|^/etc/svc/volatile|^/etc/dfs/sharetab|\ remote/" | awk '{print $1}' | xargs -I{} find {}  -type f -name "log4j*.jar")
+#    fi
+     data=$(find / ! -fstype nfs ! -fstype procfs -type f -name "*.jar" -o -name "*.zip" -o -name "*.ear" -o -name "*.war" -o -name "*.aar"    | grep -v "log4j.*\.jar")
+
 fi
 echo "#########################################################################"
 echo
@@ -177,6 +182,8 @@ for candidate in $data; do
     fi
 	# match for false positives
 	if [ $($_cmd_unzip -l $candidate | awk '{print $4}' | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class") ]; then
+		echo "# OK: in this archive, no log4j occurence" 1>&2
+		echo "" 1>&2
 		continue
 	fi
 	
@@ -226,6 +233,7 @@ touch ${_myScannedFile}
 # Transfer data to NFS
 if [ ! -e "/usr/ios/cli/ioscli" ]; then 
 	cp ${_myLogFile} ${_myNFS}/`hostname`_vuln
+	cp ${_myErrorLogFile} ${_myNFS}/`hostname`_rem
 	umount ${_myNFS}
 fi
 
