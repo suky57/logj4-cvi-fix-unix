@@ -130,11 +130,13 @@ for log4j in $data ; do
             if [ -z "$is_vuln" ]; then
                 echo "# OK: issue remediated" 1>&2
 		echo -n "OK:" >&5
+		echo "" >&5
 		echo "" 1>&2
                 continue
             fi
 
 	    echo -n "NOK:" >&5
+	    echo -n "" > &5
             echo "# ${log4j},${version}"
             echo "# Ownership: $owner:$group"
             echo "# vers 2.x: class should be removed"
@@ -256,6 +258,7 @@ touch ${_myScannedFile}
 if [ ! -e "/usr/ios/cli/ioscli" ]; then 
 	cp ${_myLogFile} ${_myNFS}/`hostname`_vuln
 	cp ${_myErrorLogFile} ${_myNFS}/`hostname`_rem
+	cp ${_myCSVFile} ${_myNFS}/`hostname`_csv
 	umount ${_myNFS}
 fi
 
