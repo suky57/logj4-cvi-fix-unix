@@ -15,14 +15,14 @@ function process_archive {
     owner=$(ls -lad $log4j | awk '{print $3}')
     group=$(ls -lad $log4j | awk '{print $4}')
     echo "# Candidate: ${log4j},${version}" 1>&2
-    echo -n "$log4j:$version:" >&5
+    print -n "$log4j:$version:" >&5
     echo "# Ownership: $owner:$group" 1>&2
 
     # thrown warning if version couldn't be determined
     if [ -z $version ]; then
         echo "# WARNING: from this jar file, version couldn't be determined - MANIFEST is missing inside!" 1>&2
         echo 1>&2
-        echo -n "NO_LOG4J_VERSION_DETECTED:OK:" >&5
+        print -n "NO_LOG4J_VERSION_DETECTED:OK:" >&5
         echo "" >&5
         continue
     fi
@@ -32,14 +32,14 @@ function process_archive {
         is_vuln=$(strings $log4j | fgrep -i "log4j/net/JMSAppender.class" | perl -ne '/(.*)PK$/ && print "$1"')
         if [ -z "$is_vuln" ]; then
             echo "# OK: issue remediated" 1>&2
-            echo -n "OK:" >&5
+            print -n "OK:" >&5
             echo "" >&5
             echo "" 1>&2
             return 1
         fi
 
         echo "# ${log4j},${version}"
-        echo -n "NOK:" >&5
+        print -n "NOK:" >&5
         echo "" >&5
         echo "# Ownership: $owner:$group"
         echo "# vers 1.x: class should be removed"
@@ -59,14 +59,14 @@ function process_archive {
             is_vuln=$(strings $log4j | fgrep -i "log4j/core/lookup/JndiLookup.class" | perl -ne '/(.*)PK$/ && print "$1"')
             if [ -z "$is_vuln" ]; then
                 echo "# OK: issue remediated" 1>&2
-                echo -n "OK:" >&5
+                print -n "OK:" >&5
                 echo "" >&5
                 echo "" 1>&2
                 return 1
             fi
 
-            echo -n "NOK:" >&5
-            echo -n "" >&5
+            print -n "NOK:" >&5
+            print -n "" >&5
             echo "# ${log4j},${version}"
             echo "# Ownership: $owner:$group"
             echo "# vers 2.x: class should be removed"
@@ -82,7 +82,7 @@ function process_archive {
         else
             echo "# OK: for version 2.x  just log4j-core module should be updated." 1>&2
             echo "" 1>&2
-            echo -n "OK:" >&5
+            print -n "OK:" >&5
             return 1
         fi
     fi
@@ -193,13 +193,13 @@ echo "#########################################################################"
 echo
 for candidate in $data; do
     echo "# Candidate: $candidate" 1>&2
-    echo -n "$candidate:SCAN_FOR_EMBEDED_LOG4J_NO_VERSION_HERE:" >&5
+    print -n "$candidate:SCAN_FOR_EMBEDED_LOG4J_NO_VERSION_HERE:" >&5
     log4js=$($_cmd_unzip -l $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne '/(.*)PK$/ && print "$1"')
     # match for false positives
     if [ $($_cmd_unzip -l $candidate | awk '{print $4}' | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class") ]; then
         echo "# OK: in this archive, no log4j occurence" 1>&2
         echo "" 1>&2
-        echo -n "OK:" >&5
+        print -n "OK:" >&5
         echo "" >&5
         continue
     fi
@@ -213,7 +213,7 @@ for candidate in $data; do
             $_cmd_unzip "$candidate" "$match" -d . 1>&2
             if [ $(strings $match | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne '/(.*)PK$/ && print "$1"') ]; then
                 echo "# $candidate($match)":
-                echo -n "NOK:" >&5
+                print -n "NOK:" >&5
                 echo "" >&5
                 echo "$_cmd_unzip \"$candidate\" \"$match\" -d ."
                 process_archive $match
@@ -229,7 +229,7 @@ for candidate in $data; do
     if [ $(echo $candidate | grep ".war$") ]; then
         echo "# OK: $match seems not to be violated" 1>&2
         echo "" 1>&2
-        echo -n "OK:" >&5
+        print -n "OK:" >&5
         echo "" >&5
         continue
     fi
@@ -245,11 +245,11 @@ for candidate in $data; do
         echo "$_cmd_zip -q -d \"${candidate}\" \"$log4j\""
         echo "#3) Restore the ownership: "
 
-        echo -n "NOK:" >&5
+        print -n "NOK:" >&5
         echo "" >&5
     done
     echo "" 1>&2
-    echo -n "OK:" >&5
+    print -n "OK:" >&5
     echo "" >&5
 done
 
