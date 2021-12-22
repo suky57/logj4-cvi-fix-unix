@@ -91,7 +91,7 @@ for log4j in $data ; do
     if [ -z $version ]; then
         echo "# WARNING: from this jar file, version couldn't be determined - MANIFEST is missing inside!" 1>&2
         echo 1>&2
-	echo -n "NO_LOG4J_VERSION_DETECTED:???:" >&5
+	echo -n "NO_LOG4J_VERSION_DETECTED:OK:" >&5
 	echo "" >&5
         continue
     fi
