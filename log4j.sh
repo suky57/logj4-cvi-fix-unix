@@ -102,12 +102,14 @@ for log4j in $data ; do
         if [ -z "$is_vuln" ]; then
             echo "# OK: issue remediated" 1>&2
 	    echo -n "OK:" >&5
+	    echo "" >&5
 	    echo "" 1>&2
             continue
         fi
 
         echo "# ${log4j},${version}"
 	echo -n "NOK:" >&5
+	echo "" >&5
         echo "# Ownership: $owner:$group"
         echo "# vers 1.x: class should be removed"
         echo "#1) make an backup of $log4j"
@@ -185,11 +187,14 @@ echo "#########################################################################"
 echo
 for candidate in $data; do
     echo "# Candidate: $candidate" 1>&2
+    echo -n "$candidate:SCAN_FOR_EMBEDED_LOG4J_NO_VERSION_HERE:" >&5
     log4js=$($_cmd_unzip -l $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"')
 	# match for false positives
 	if [ $($_cmd_unzip -l $candidate | awk '{print $4}' | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class") ]; then
 		echo "# OK: in this archive, no log4j occurence" 1>&2
 		echo "" 1>&2
+		echo -n "OK:" >&5
+ 		echo "" >&5
 		continue
 	fi
 	
@@ -201,6 +206,8 @@ for candidate in $data; do
 			echo "# Candidate inside war: $match" 
 			$_cmd_unzip "$candidate" "$match" -d . 
 			if [ $(strings $match | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne  '/(.*)PK$/ && print "$1"') ]; then
+				echo -n "NOK:" >&5
+				echo "" >&5
 				echo "# $candidate($match)":
 				echo "$0 \"${dir}\" | sh"
 				echo "$_cmd_zip $candidate $match"
@@ -215,6 +222,8 @@ for candidate in $data; do
 	if [ $(echo $candidate| grep ".war$" ) ]; then
 		echo "# OK: $match seems not to be violated" 1>&2
 		echo "" 1>&2
+		echo -n "OK:" >&5
+		echo "" >&5
 		continue
 	fi
 
@@ -228,9 +237,14 @@ for candidate in $data; do
                 echo "#2) Removethe class from the classpath"
                 echo "$_cmd_zip -q -d \"${candidate}\" \"$log4j\""
                 echo "#3) Restore the ownership: "
+
+		echo -n "NOK:" >&5
+		echo "" >&5
    done 
    echo ""
    echo "" 1>&2
+   echo -n "OK:" >&5
+   echo "">&5
 done
 
 
