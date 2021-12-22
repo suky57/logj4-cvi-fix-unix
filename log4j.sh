@@ -136,7 +136,7 @@ for log4j in $data ; do
             fi
 
 	    echo -n "NOK:" >&5
-	    echo -n "" > &5
+	    echo -n "" >&5
             echo "# ${log4j},${version}"
             echo "# Ownership: $owner:$group"
             echo "# vers 2.x: class should be removed"
