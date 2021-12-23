@@ -54,7 +54,7 @@ function process_archive {
     fi
 
     #version >= 2.0:
-    if [ $(echo "$version" | grep "^2\(\.\d+\)*") ]; then
+    if [ $(echo "$version" | grep "^2\.\([0-9]\|1[0-6]\)\(\.[0-9]\+\)*$") ]; then
         if [ $(echo $log4j | grep "log4j-core-") ]; then
             is_vuln=$(strings $log4j | fgrep -i "log4j/core/lookup/JndiLookup.class" | perl -ne '/(.*)PK$/ && print "$1"')
             if [ -z "$is_vuln" ]; then
