@@ -83,6 +83,7 @@ function process_archive {
             echo "# OK: for version 2.x  just log4j-core module should be updated." 1>&2
             echo "" 1>&2
             print -n "OK:" >&5
+	    echo "" >&5
             return 1
         fi
     fi
@@ -212,7 +213,7 @@ for candidate in $data; do
             echo "# Candidate inside war: $match" 1>&2
             $_cmd_unzip "$candidate" "$match" -d . 1>&2
             if [ $(strings $match | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne '/(.*)PK$/ && print "$1"') ]; then
-                echo "# $candidate($match)":
+                echo "# $candidate($match)"
                 print -n "NOK:" >&5
                 echo "" >&5
                 echo "$_cmd_unzip \"$candidate\" \"$match\" -d ."
