@@ -130,12 +130,12 @@ else
 fi
 
 # Check the lock file, if exists, exit now!
-#if [ -f ${_myLockFile} ]; then
-#	echo "${_myLockFile} exists! Exitting ... "
-#	exit 255
-#else
-#	touch ${_myLockFile}
-#fi
+if [ -f ${_myLockFile} ]; then
+	echo "${_myLockFile} exists! Exitting ... "
+	exit 255
+else
+	touch ${_myLockFile}
+fi
 
 # The defaults rear its ugly head again: ksh88
 if [ "$(uname -s)" == "AIX" ] || [ "$(uname -s)" == "SunOS" ]; then
@@ -216,6 +216,7 @@ for candidate in $data; do
                 echo "# $candidate($match)"
                 print -n "NOK:" >&5
                 echo "" >&5
+                echo "cp -p \"${candidate}\" \"${candidate}.bak-$(date +%s)\""
                 echo "$_cmd_unzip \"$candidate\" \"$match\" -d ."
                 process_archive $match
                 echo "$_cmd_zip -ur $candidate $match"
