@@ -219,7 +219,7 @@ for candidate in $data; do
                 echo "cp -p \"${candidate}\" \"${candidate}.bak-$(date +%s)\""
                 echo "$_cmd_unzip \"$candidate\" \"$match\" -d ."
                 process_archive $match
-                echo "$_cmd_zip -ur $candidate $match"
+                echo "$_cmd_zip -ur \"$candidate\" \"$match\""
                 echo "rm -Rf \"${dir}\"" # commented out for backup purposes
                 echo ""
                 continue
