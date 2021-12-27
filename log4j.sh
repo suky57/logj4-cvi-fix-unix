@@ -12,8 +12,9 @@ function process_archive {
     if [ -z "$version" ]; then
         version=$($_cmd_unzip -q -c ${log4j} META-INF/MANIFEST.MF | grep -i "Library-Version" | perl -ne '/(\d.*\S)/ && print "$1"' | head -n1)
     fi
-    owner=$(ls -lad $log4j | awk '{print $3}')
-    group=$(ls -lad $log4j | awk '{print $4}')
+    owner=$(ls -lad "$log4j" | awk '{print $3}')
+    group=$(ls -lad "$log4j" | awk '{print $4}')
+    ls -lad "$log4j"
     echo "# Candidate: ${log4j},${version}" 1>&2
     print -n "$log4j:$version:" >&5
     echo "# Ownership: $owner:$group" 1>&2
@@ -205,9 +206,9 @@ for candidate in $data; do
         continue
     fi
 
-    owner=$(ls -lad $candidate | awk '{print $3}')
-    group=$(ls -lad $candidate | awk '{print $4}')
-
+    owner=$(ls -lad "$candidate" | awk '{print $3}')
+    group=$(ls -lad "$candidate" | awk '{print $4}')
+    ls -lad "$candidate"
 
     # case of war file - very simple heuristic
     if [ $(echo $candidate | grep ".war$") ]; then
