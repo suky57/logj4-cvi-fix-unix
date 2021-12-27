@@ -132,7 +132,7 @@ fi
 
 # Check the lock file, if exists, exit now!
 if [ -f ${_myLockFile} ]; then
-	echo "${_myLockFile} exists! Exitting ... "
+	echo "${_myLockFile} exists! Exitting ... " 1>&2
 	exit 255
 else
 	touch ${_myLockFile}
