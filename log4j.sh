@@ -205,6 +205,10 @@ for candidate in $data; do
         continue
     fi
 
+    owner=$(ls -lad $candidate | awk '{print $3}')
+    group=$(ls -lad $candidate | awk '{print $4}')
+
+
     # case of war file - very simple heuristic
     if [ $(echo $candidate | grep ".war$") ]; then
         matches=$($_cmd_unzip -l $candidate | grep ".*log4j.*.jar" | awk '{print $NF}')
@@ -220,6 +224,7 @@ for candidate in $data; do
                 echo "$_cmd_unzip \"$candidate\" \"$match\" -d ."
                 process_archive $match
                 echo "$_cmd_zip -ur \"$candidate\" \"$match\""
+		echo "chown $owner:$group \"$candidate\""
                 echo "rm -Rf \"${dir}\"" # commented out for backup purposes
                 echo ""
                 continue
