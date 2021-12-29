@@ -55,7 +55,8 @@ function process_archive {
     fi
 
     #version >= 2.0:
-    if [ $(echo "$version" | grep "^2\.\([0-9]\|1[0-6]\)\(\.[0-9]\+\)*$") ]; then
+    # 2.3.1 and 2.12.3 should be safe, so excluding them
+    if [ $(echo "$version" | grep "^2\.\([0-9]\|1[0-7]\)\(\.[0-9]\+\)*$" |egrep -v "2.3.1|2.12.3|2.17.1") ]; then
         if [ $(echo $log4j | grep "log4j-core-") ]; then
             is_vuln=$(strings $log4j | fgrep -i "log4j/core/lookup/JndiLookup.class" | perl -ne '/(.*)PK$/ && print "$1"')
             if [ -z "$is_vuln" ]; then
@@ -132,6 +133,7 @@ fi
 
 # Check the lock file, if exists, exit now!
 if [ -f ${_myLockFile} ]; then
+        rm ${_myLockFile}
 	echo "${_myLockFile} exists! Exitting ... " 1>&2
 	exit 255
 else
@@ -266,11 +268,13 @@ echo "#===Uptime: $(uptime)"
 touch ${_myScannedFile}
 
 # Transfer data to NFS
+# and do the cleanup in /home/unxxx4 if needed
 if [ ! -e "/usr/ios/cli/ioscli" ]; then
     cp ${_myLogFile} ${_myNFS}/$(hostname)_vuln
     cp ${_myErrorLogFile} ${_myNFS}/$(hostname)_rem
     cp ${_myCSVFile} ${_myNFS}/$(hostname)_csv
     umount ${_myNFS}
+    test -d /home/unxxx4/WEB-INF && rm -Rf /home/unxxx4/WEB-INF
 fi
 
 # remove lockfile
