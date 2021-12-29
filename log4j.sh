@@ -214,7 +214,7 @@ for candidate in $data; do
 
     # case of war file - very simple heuristic
     if [ $(echo $candidate | grep ".war$") ]; then
-        matches=$($_cmd_unzip -l $candidate | grep ".*log4j.*.jar" | awk '{print $NF}')
+        matches=$($_cmd_unzip -l $candidate | grep ".*log4j.*.jar" |egrep -v "2.3.1|2.12.3|2.17.1" |awk '{print $NF}')
         for match in $matches; do
             dir=$(echo $match | cut -d"/" -f1)
             echo "# Candidate inside war: $match" 1>&2
