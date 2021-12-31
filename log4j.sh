@@ -3,7 +3,7 @@
 ### FUNCTIONS FOLLOW:
 
 function process_archive {
-    log4j=$1
+    log4j="$1"
     if [ -z $log4j ]; then
         echo "function needs at least one argument (JAR archive)"
         exit 3
@@ -45,13 +45,13 @@ function process_archive {
         echo "# Ownership: $owner:$group"
         echo "# vers 1.x: class should be removed"
         echo "#1) make an backup of $log4j"
-        echo "cp -p \"${log4j}\" \"${log4j}.bak-$(date +%s)\""
+        echo "cp -p '${log4j}' '${log4j}'.bak-$(date +%s)"
         echo "#2) Remove the class from the classpath"
         for j in $is_vuln; do
-            echo "$_cmd_zip -q -d \"${log4j}\" \"${j}\""
+            echo "$_cmd_zip -q -d '${log4j}' '${j}'"
         done
         echo "#3) Restore the ownership: "
-        echo "chown $owner:$group \"$log4j\""
+        echo "chown $owner:$group '$log4j'"
     fi
 
     #version >= 2.0:
@@ -73,13 +73,13 @@ function process_archive {
             echo "# Ownership: $owner:$group"
             echo "# vers 2.x: class should be removed"
             echo "#1) make an backup of $log4j"
-            echo "cp -p \"${log4j}\" \"${log4j}.bak-$(date +%s)\""
+            echo "cp -p '${log4j}' '${log4j}'.bak-$(date +%s)"
             echo "#2) Remove the class from the classpath"
             for j in $is_vuln; do
-                echo "$_cmd_zip -q -d \"${log4j}\" \"${j}\""
+                echo "$_cmd_zip -q -d '${log4j}' '${j}'"
             done
             echo "#3) Restore the ownership: "
-            echo "chown $owner:$group $log4j"
+            echo "chown $owner:$group '$log4j'"
 
         else
             echo "# OK: for version 2.x  just log4j-core module should be updated." 1>&2
@@ -133,9 +133,8 @@ fi
 
 # Check the lock file, if exists, exit now!
 if [ -f ${_myLockFile} ]; then
-        rm ${_myLockFile}
 	echo "${_myLockFile} exists! Exitting ... " 1>&2
-	exit 255
+	#exit 255
 else
 	touch ${_myLockFile}
 fi
@@ -223,12 +222,12 @@ for candidate in $data; do
                 echo "# $candidate($match)"
                 print -n "NOK:" >&5
                 echo "" >&5
-                echo "cp -p \"${candidate}\" \"${candidate}.bak-$(date +%s)\""
-                echo "$_cmd_unzip \"$candidate\" \"$match\" -d ."
+                echo "cp -p '${candidate}' '${candidate}'.bak-$(date +%s)"
+                echo "$_cmd_unzip '$candidate' '$matc' -d ."
                 process_archive $match
-                echo "$_cmd_zip -ur \"$candidate\" \"$match\""
-		echo "chown $owner:$group \"$candidate\""
-                echo "rm -Rf \"${dir}\"" # commented out for backup purposes
+                echo "$_cmd_zip -ur '$candidate' '$match'"
+		echo "chown $owner:$group '$candidate'"
+                echo "rm -Rf '${dir}'" # commented out for backup purposes
                 echo ""
                 continue
             fi
@@ -250,10 +249,11 @@ for candidate in $data; do
         group=$(ls -lad $candidate | awk '{print $4}')
         echo "# Found class: $log4j"
         echo "#1) make an backup of $candidate"
-        echo "cp -p \"${candidate}\" \"${candidate}.bak-$(date +%s)\""
+        echo "cp -p '${candidate}' '${candidate}'.bak-$(date +%s)"
         echo "#2) Removethe class from the classpath"
-        echo "$_cmd_zip -q -d \"${candidate}\" \"$log4j\""
+        echo "$_cmd_zip -q -d '${candidate}' '$log4j'"
         echo "#3) Restore the ownership: "
+	echo "chown $owner:$group '$candidate'"
 
         print -n "NOK:" >&5
         echo "" >&5
