@@ -18,6 +18,7 @@ function process_archive {
     echo "# Candidate: ${log4j},${version}" 1>&2
     print -n "$log4j:$version:" >&5
     echo "# Ownership: $owner:$group" 1>&2
+    echo "# Version: '$version'" 1>&2
 
     # thrown warning if version couldn't be determined
     if [ -z $version ]; then
@@ -56,7 +57,7 @@ function process_archive {
 
     #version >= 2.0:
     # 2.3.1 and 2.12.3 should be safe, so excluding them
-    if [ $(echo "$version" | grep "^2\.\([0-9]\|1[0-7]\)\(\.[0-9]\+\)*$" |egrep -v "2.3.1|2.12.3|2.17.1") ]; then
+    if [ $(echo "$version" | grep "^2\.\([0-9]\|1[0-7]\)\(\.[0-9]\+\)*$" | egrep -v "2.3.1|2.12.3|2.17.1") ]; then
         if [ $(echo $log4j | grep "log4j-core-") ]; then
             is_vuln=$(strings $log4j | fgrep -i "log4j/core/lookup/JndiLookup.class" | perl -ne '/(.*)PK$/ && print "$1"')
             if [ -z "$is_vuln" ]; then
@@ -85,14 +86,15 @@ function process_archive {
             echo "# OK: for version 2.x  just log4j-core module should be updated." 1>&2
             echo "" 1>&2
             print -n "OK:" >&5
-	    echo "" >&5
+            echo "" >&5
             return 1
         fi
     fi
 
-    echo "# NOK - file is violated!" 1>&2
+    echo "# OK - no condition matched!" 1>&2
     echo "" 1>&2
     echo "" >&5
+    return 2
 
 }
 
@@ -133,10 +135,10 @@ fi
 
 # Check the lock file, if exists, exit now!
 if [ -f ${_myLockFile} ]; then
-	echo "${_myLockFile} exists! Exitting ... " 1>&2
-	#exit 255
+    echo "${_myLockFile} exists! Exitting ... " 1>&2
+    #exit 255
 else
-	touch ${_myLockFile}
+    touch ${_myLockFile}
 fi
 
 # The defaults rear its ugly head again: ksh88
@@ -213,22 +215,24 @@ for candidate in $data; do
 
     # case of war file - very simple heuristic
     if [ $(echo $candidate | grep ".war$") ]; then
-        matches=$($_cmd_unzip -l $candidate | grep ".*log4j.*.jar" |egrep -v "2.3.1|2.12.3|2.17.1" |awk '{print $NF}')
+        matches=$($_cmd_unzip -l $candidate | grep ".*log4j.*.jar" | egrep -v "2.3.1|2.12.3|2.17.1" | awk '{print $NF}')
         for match in $matches; do
             dir=$(echo $match | cut -d"/" -f1)
             echo "# Candidate inside war: $match" 1>&2
             $_cmd_unzip "$candidate" "$match" -d . 1>&2
             if [ $(strings $match | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne '/(.*)PK$/ && print "$1"') ]; then
-                echo "# $candidate($match)"
-                print -n "NOK:" >&5
-                echo "" >&5
-                echo "cp -p '${candidate}' '${candidate}'.bak-$(date +%s)"
-                echo "$_cmd_unzip '$candidate' '$match' -d ."
-                process_archive $match
-                echo "$_cmd_zip -ur '$candidate' '$match'"
-		echo "chown $owner:$group '$candidate'"
-                echo "rm -Rf '${dir}'" # commented out for backup purposes
-                echo ""
+                if process_archive $match; then
+                    echo "# $candidate($match)"
+                    print -n "NOK:" >&5
+                    echo "" >&5
+                    echo "cp -p '${candidate}' '${candidate}'.bak-$(date +%s)"
+                    echo "$_cmd_unzip '$candidate' '$match' -d ."
+                    process_archive $match
+                    echo "$_cmd_zip -ur '$candidate' '$match'"
+                    echo "chown $owner:$group '$candidate'"
+                    echo "rm -Rf '${dir}'" # commented out for backup purposes
+                    echo ""
+                fi
                 continue
             fi
             rm -Rf "${dir}"
@@ -253,7 +257,7 @@ for candidate in $data; do
         echo "#2) Removethe class from the classpath"
         echo "$_cmd_zip -q -d '${candidate}' '$log4j'"
         echo "#3) Restore the ownership: "
-	echo "chown $owner:$group '$candidate'"
+        echo "chown $owner:$group '$candidate'"
 
         print -n "NOK:" >&5
         echo "" >&5
