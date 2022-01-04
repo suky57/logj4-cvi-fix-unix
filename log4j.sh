@@ -16,7 +16,7 @@ function process_archive {
     group=$(ls -lad "$log4j" | awk '{print $4}')
     ls -lad "$log4j" 1>&2
     echo "# Candidate: ${log4j},${version}" 1>&2
-    print -n "$log4j:$version:" >&5
+    print -n "$log4j;$version;" >&5
     echo "# Ownership: $owner:$group" 1>&2
     echo "# Version: '$version'" 1>&2
 
@@ -24,7 +24,7 @@ function process_archive {
     if [ -z $version ]; then
         echo "# WARNING: from this jar file, version couldn't be determined - MANIFEST is missing inside!" 1>&2
         echo 1>&2
-        print -n "NO_LOG4J_VERSION_DETECTED:OK:" >&5
+        print -n "NO_LOG4J_VERSION_DETECTED;OK;" >&5
         echo "" >&5
         continue
     fi
@@ -34,14 +34,14 @@ function process_archive {
         is_vuln=$(strings $log4j | fgrep -i "log4j/net/JMSAppender.class" | perl -ne '/(.*)PK$/ && print "$1"')
         if [ -z "$is_vuln" ]; then
             echo "# OK: issue remediated" 1>&2
-            print -n "OK:" >&5
+            print -n "OK;" >&5
             echo "" >&5
             echo "" 1>&2
             return 1
         fi
 
         echo "# ${log4j},${version}"
-        print -n "NOK:" >&5
+        print -n "NOK;" >&5
         echo "" >&5
         echo "# Ownership: $owner:$group"
         echo "# vers 1.x: class should be removed"
@@ -62,13 +62,13 @@ function process_archive {
             is_vuln=$(strings $log4j | fgrep -i "log4j/core/lookup/JndiLookup.class" | perl -ne '/(.*)PK$/ && print "$1"')
             if [ -z "$is_vuln" ]; then
                 echo "# OK: issue remediated" 1>&2
-                print -n "OK:" >&5
+                print -n "OK;" >&5
                 echo "" >&5
                 echo "" 1>&2
                 return 1
             fi
 
-            print -n "NOK:" >&5
+            print -n "NOK;" >&5
             print -n "" >&5
             echo "# ${log4j},${version}"
             echo "# Ownership: $owner:$group"
@@ -85,7 +85,7 @@ function process_archive {
         else
             echo "# OK: for version 2.x  just log4j-core module should be updated." 1>&2
             echo "" 1>&2
-            print -n "OK:" >&5
+            print -n "OK;" >&5
             echo "" >&5
             return 1
         fi
@@ -136,7 +136,7 @@ fi
 # Check the lock file, if exists, exit now!
 if [ -f ${_myLockFile} ]; then
     echo "${_myLockFile} exists! Exitting ... " 1>&2
-    #exit 255
+    exit 255
 else
     touch ${_myLockFile}
 fi
@@ -198,13 +198,13 @@ echo "#########################################################################"
 echo
 for candidate in $data; do
     echo "# Candidate: $candidate" 1>&2
-    print -n "$candidate:SCAN_FOR_EMBEDED_LOG4J_NO_VERSION_HERE:" >&5
+    print -n "$candidate;SCAN_FOR_EMBEDED_LOG4J_NO_VERSION_HERE;" >&5
     log4js=$($_cmd_unzip -l $candidate | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne '/(.*)PK$/ && print "$1"')
     # match for false positives
     if [ $($_cmd_unzip -l $candidate | awk '{print $4}' | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class") ]; then
         echo "# OK: in this archive, no log4j occurence" 1>&2
         echo "" 1>&2
-        print -n "OK:" >&5
+        print -n "OK;" >&5
         echo "" >&5
         continue
     fi
@@ -223,7 +223,7 @@ for candidate in $data; do
             if [ $(strings $match | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne '/(.*)PK$/ && print "$1"') ]; then
                 if process_archive $match; then
                     echo "# $candidate($match)"
-                    print -n "NOK:" >&5
+                    print -n "NOK;" >&5
                     echo "" >&5
                     echo "cp -p '${candidate}' '${candidate}'.bak-$(date +%s)"
                     echo "$_cmd_unzip '$candidate' '$match' -d ."
@@ -242,7 +242,7 @@ for candidate in $data; do
     if [ $(echo $candidate | grep ".war$") ]; then
         echo "# OK: $match seems not to be violated" 1>&2
         echo "" 1>&2
-        print -n "OK:" >&5
+        print -n "OK;" >&5
         echo "" >&5
         continue
     fi
@@ -259,11 +259,11 @@ for candidate in $data; do
         echo "#3) Restore the ownership: "
         echo "chown $owner:$group '$candidate'"
 
-        print -n "NOK:" >&5
+        print -n "NOK;" >&5
         echo "" >&5
     done
     echo "" 1>&2
-    print -n "OK:" >&5
+    print -n "OK;" >&5
     echo "" >&5
 done
 
