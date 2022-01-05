@@ -218,6 +218,8 @@ for candidate in $data; do
         matches=$($_cmd_unzip -l $candidate | grep ".*log4j.*.jar" | egrep -v "2.3.1|2.12.3|2.17.1" | awk '{print $NF}')
         for match in $matches; do
             dir=$(echo $match | cut -d"/" -f1)
+            test -d ${dir} && rm -Rf ${dir}
+
             echo "# Candidate inside war: $match" 1>&2
             $_cmd_unzip "$candidate" "$match" -d . 1>&2
             if [ $(strings $match | egrep -i "log4j/net/JMSAppender.class|log4j/core/lookup/JndiLookup.class" | perl -ne '/(.*)PK$/ && print "$1"') ]; then
