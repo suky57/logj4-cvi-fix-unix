@@ -56,7 +56,7 @@ function process_archive {
     fi
 
     #version >= 2.0:
-    # 2.3.1 and 2.12.3 should be safe, so excluding them
+    # 2.3.1 and 2.12.4 should be safe, so excluding them
     if [ $(echo "$version" | grep "^2\.\([0-9]\|1[0-7]\)\(\.[0-9]\+\)*$" | egrep -v "2.3.1|2.12.3|2.17.1") ]; then
         if [ $(echo $log4j | grep "log4j-core-") ]; then
             is_vuln=$(strings $log4j | fgrep -i "log4j/core/lookup/JndiLookup.class" | perl -ne '/(.*)PK$/ && print "$1"')
